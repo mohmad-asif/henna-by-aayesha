@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Primary Henna Palette */
+    --color-henna-deep: #381A0E;
+    --color-henna-primary: #4E2714;
+    --color-henna-medium: #703D24;
+    --color-henna-light: #F5ECE4;
+    --color-henna-soft: #FAF3EE;
+
+    /* Terracotta & Rose Accents */
+    --color-terracotta: #B95945;
+    --color-terracotta-dark: #9B4230;
+    --color-terracotta-soft: #F9EFEA;
+    --color-rose-accent: #C77568;
+
+    /* Subtle Gold & Brass Accents */
+    --color-gold: #C29B4D;
+    --color-gold-light: #F9F5EA;
+    --color-gold-dark: #9F792A;
+
+    /* Warm Cream Backgrounds */
+    --color-cream-bg: #FCF9F4;
+    --color-cream-card: #FFFFFF;
+    --color-cream-subtle: #F6F0E6;
+    --color-border-warm: #EADFD3;
+    --color-border-soft: #F1E9DF;
+
+    /* Text & Neutrals */
+    --color-text-primary: #261B16;
+    --color-text-secondary: #58463D;
+    --color-text-muted: #847269;
+    --color-text-light: #B4A49B;
+  }
+
+  * {
+    border-color: var(--color-border-warm);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--color-cream-bg);
+    color: var(--color-text-primary);
+  }
+
+  body {
+    background-color: var(--color-cream-bg);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: #4E2714;
+    color: #FAF3EE;
+  }
+
+  :focus-visible {
+    outline: 2px solid #4E2714;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Custom Design System Utility Classes */
+.font-serif-heading {
+  font-family: var(--font-cormorant), 'Playfair Display', Georgia, serif;
+}
+
+.font-sans-body {
+  font-family: var(--font-jakarta), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Subtle Henna Motif Background Overlay */
+.henna-motif-bg {
+  background-image: radial-gradient(circle at 1px 1px, rgba(78, 39, 20, 0.05) 1px, transparent 0);
+  background-size: 32px 32px;
+}
+
+/* Glassmorphism Navigation */
+.nav-glass {
+  background: rgba(252, 249, 244, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Custom Card Transitions */
+.card-hover-effect {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px -8px rgba(78, 39, 20, 0.09);
+  border-color: #DBC8B5;
+}
+
+/* WhatsApp Brand Gradient Accent */
+.whatsapp-glow {
+  box-shadow: 0 4px 18px -2px rgba(37, 211, 102, 0.25);
+}
+
+.whatsapp-glow:hover {
+  box-shadow: 0 8px 24px -2px rgba(37, 211, 102, 0.38);
+}
