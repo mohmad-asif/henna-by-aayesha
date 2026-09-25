@@ -218,9 +218,6 @@ export default function AdminTestimonialsPage() {
           <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
             Testimonials & Reviews
           </h1>
-          <p className="text-xs sm:text-sm text-[#703D24] mt-1">
-            Manage feedback from Bangalore brides, ratings, and featured reviews on the homepage.
-          </p>
         </div>
 
         <button
@@ -233,11 +230,10 @@ export default function AdminTestimonialsPage() {
 
       {statusMsg && (
         <div
-          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
-            statusMsg.type === 'success'
+          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${statusMsg.type === 'success'
               ? 'bg-[#EAFBF0] border-[#D0F4DE] text-[#1EBE5D]'
               : 'bg-[#FDF2F2] border-[#F8D7DA] text-[#9B2C2C]'
-          }`}
+            }`}
         >
           {statusMsg.text}
         </div>
@@ -292,11 +288,10 @@ export default function AdminTestimonialsPage() {
                     <td className="py-3.5 px-4 text-center">
                       <button
                         onClick={() => handleToggleFeatured(r)}
-                        className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                          r.featured
+                        className={`text-xs px-2.5 py-1 rounded-full font-medium ${r.featured
                             ? 'bg-[#F9F5EA] text-[#7E5E1C] border border-[#ECDDBF]'
                             : 'bg-gray-100 text-gray-500'
-                        }`}
+                          }`}
                       >
                         {r.featured ? '★ Homepage' : 'Standard'}
                       </button>
@@ -304,11 +299,10 @@ export default function AdminTestimonialsPage() {
                     <td className="py-3.5 px-4 text-center">
                       <button
                         onClick={() => handleToggleActive(r)}
-                        className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
-                          r.active
+                        className={`text-xs px-2.5 py-1 rounded-full font-semibold ${r.active
                             ? 'bg-[#EAFBF0] text-[#1EBE5D] border border-[#D0F4DE]'
                             : 'bg-red-50 text-red-500'
-                        }`}
+                          }`}
                       >
                         {r.active ? 'Visible' : 'Hidden'}
                       </button>

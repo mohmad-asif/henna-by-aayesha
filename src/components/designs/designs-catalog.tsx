@@ -69,20 +69,23 @@ export function DesignsCatalog({
     setDisplayCount(9);
   };
 
+  const city = settings?.location?.city || settings?.contact.city || 'Bengaluru';
+  const serviceAvailability = settings?.location?.serviceAvailability || `Appointments in ${city} Only`;
+
   return (
     <div>
       {/* Page Header */}
       <section className="py-16 sm:py-20 bg-gradient-to-b from-[#FAF3EE] to-[#FCF9F4] border-b border-[#EADFD3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex mb-4">
-            <LocationBadge label="Appointments in Bangalore / Bengaluru Only" variant="accent" />
+            <LocationBadge label={serviceAvailability} variant="accent" />
           </div>
 
           <SectionHeading
             as="h1"
             eyebrow="Artisan Portfolio"
-            title="Mehndi Design Collections in Bangalore"
-            description="Explore our signature bridal collections, intricate royal palm mandalas, modern Arabic trails, and delicate minimalist accents handcrafted across Bangalore."
+            title={`Mehndi Design Collections in ${city}`}
+            description={`Explore our signature bridal collections, intricate royal palm mandalas, modern Arabic trails, and delicate minimalist accents handcrafted across ${city}.`}
             align="center"
             showMotif
           />
@@ -147,7 +150,12 @@ export function DesignsCatalog({
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {visibleDesigns.map((design, idx) => (
-                  <DesignCard key={design.id} design={design} priority={idx < 3} />
+                  <DesignCard
+                    key={design.id}
+                    design={design}
+                    priority={idx < 3}
+                    phoneRaw={settings?.contact.whatsappPhoneRaw}
+                  />
                 ))}
               </div>
 
@@ -179,10 +187,11 @@ export function DesignsCatalog({
 
       {/* Bottom CTA */}
       <CTASection
-        title="Found a Design You Love for Your Bangalore Event?"
+        title={`Found a Design You Love for Your ${city} Event?`}
         description="Share the design name or screenshot directly with Aayesha on WhatsApp to check availability and lock your date."
         phoneRaw={settings?.contact.whatsappPhoneRaw}
         emailAddress={settings?.contact.email}
+        city={city}
       />
     </div>
   );

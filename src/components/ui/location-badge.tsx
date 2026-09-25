@@ -9,10 +9,10 @@ export interface LocationBadgeProps {
 }
 
 /**
- * Dedicated Location Badge highlighting Bangalore/Bengaluru exclusive availability
+ * Dedicated Location Badge highlighting artist service availability
  */
 export function LocationBadge({
-  label = 'Bangalore / Bengaluru Only',
+  label = 'On-Location Service',
   className = '',
   variant = 'accent',
   size = 'md',

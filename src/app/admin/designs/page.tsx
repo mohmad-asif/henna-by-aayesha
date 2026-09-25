@@ -270,9 +270,6 @@ export default function AdminDesignsPage() {
           <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
             Mehndi Designs
           </h1>
-          <p className="text-xs sm:text-sm text-[#703D24] mt-1">
-            Add, update, feature, or deactivate designs displayed on the public catalog and homepage.
-          </p>
         </div>
 
         <button
@@ -285,11 +282,10 @@ export default function AdminDesignsPage() {
 
       {statusMsg && (
         <div
-          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
-            statusMsg.type === 'success'
+          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${statusMsg.type === 'success'
               ? 'bg-[#EAFBF0] border-[#D0F4DE] text-[#1EBE5D]'
               : 'bg-[#FDF2F2] border-[#F8D7DA] text-[#9B2C2C]'
-          }`}
+            }`}
         >
           {statusMsg.text}
         </div>
@@ -349,11 +345,10 @@ export default function AdminDesignsPage() {
                     <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => handleToggleFeatured(design)}
-                        className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
-                          design.featured
+                        className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${design.featured
                             ? 'bg-[#F9F5EA] text-[#7E5E1C] border border-[#ECDDBF]'
                             : 'bg-gray-100 text-gray-500'
-                        }`}
+                          }`}
                       >
                         {design.featured ? '★ Featured' : 'Normal'}
                       </button>
@@ -361,11 +356,10 @@ export default function AdminDesignsPage() {
                     <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => handleToggleActive(design)}
-                        className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-colors ${
-                          design.active
+                        className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-colors ${design.active
                             ? 'bg-[#EAFBF0] text-[#1EBE5D] border border-[#D0F4DE]'
                             : 'bg-red-50 text-red-500 border border-red-200'
-                        }`}
+                          }`}
                       >
                         {design.active ? 'Active' : 'Hidden'}
                       </button>

@@ -225,9 +225,6 @@ export default function AdminGalleryPage() {
           <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
             Photo Gallery
           </h1>
-          <p className="text-xs sm:text-sm text-[#703D24] mt-1">
-            Upload new lookbook images, categorize into bridal, arabic, feet, and manage visibility.
-          </p>
         </div>
 
         <button
@@ -240,11 +237,10 @@ export default function AdminGalleryPage() {
 
       {statusMsg && (
         <div
-          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
-            statusMsg.type === 'success'
+          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${statusMsg.type === 'success'
               ? 'bg-[#EAFBF0] border-[#D0F4DE] text-[#1EBE5D]'
               : 'bg-[#FDF2F2] border-[#F8D7DA] text-[#9B2C2C]'
-          }`}
+            }`}
         >
           {statusMsg.text}
         </div>
@@ -293,11 +289,10 @@ export default function AdminGalleryPage() {
                 <div className="mt-4 pt-3 border-t border-[#F5ECE4] flex items-center justify-between">
                   <button
                     onClick={() => handleToggleActive(item)}
-                    className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
-                      item.active
+                    className={`text-xs px-2.5 py-1 rounded-full font-semibold ${item.active
                         ? 'bg-[#EAFBF0] text-[#1EBE5D]'
                         : 'bg-red-50 text-red-500'
-                    }`}
+                      }`}
                   >
                     {item.active ? 'Visible' : 'Hidden'}
                   </button>

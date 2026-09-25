@@ -19,40 +19,63 @@ import { CTASection } from '@/components/sections/cta-section';
 
 import { JsonLd, generateBreadcrumbSchema, generateLocalBusinessSchema } from '@/lib/schema';
 import { getCanonicalUrl } from '@/config/site';
+import { formatLocation } from '@/lib/settings/location';
 
-export const metadata: Metadata = {
-  title: 'Contact & WhatsApp Appointments in Bangalore',
-  description:
-    'Book your mehndi appointment with Aayesha in Bangalore exclusively via WhatsApp. Check availability, on-location travel details, and contact information.',
-  alternates: {
-    canonical: '/contact',
-  },
-  openGraph: {
-    title: 'Contact & WhatsApp Appointments | Henna by Aayesha Bangalore',
-    description:
-      'Book your mehndi appointment with Aayesha in Bangalore exclusively via WhatsApp. Check availability, on-location travel details, and contact information.',
-    url: getCanonicalUrl('/contact'),
-    type: 'website',
-    images: [
-      {
-        url: '/images/hero-bride.jpg',
-        width: 1200,
-        height: 900,
-        alt: 'Contact Henna by Aayesha - Mehndi Artist in Bangalore',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Contact Henna by Aayesha Bangalore',
-    description:
-      'Reserve your bridal or festive henna session in Bangalore directly via WhatsApp.',
-    images: ['/images/hero-bride.jpg'],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await fetchSiteSettings();
+  const city = settings.location?.city || settings.contact.city;
+
+  const title = settings.seo?.contactTitle
+    ? formatLocation(settings.seo.contactTitle, settings)
+    : `Contact & WhatsApp Appointments in ${city}`;
+
+  const description = settings.seo?.contactDescription
+    ? formatLocation(settings.seo.contactDescription, settings)
+    : `Book your mehndi appointment with Aayesha in ${city} exclusively via WhatsApp. Check availability, on-location travel details, and contact information.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: '/contact',
+    },
+    openGraph: {
+      title,
+      description,
+      url: getCanonicalUrl('/contact'),
+      type: 'website',
+      images: [
+        {
+          url: '/images/hero-bride.jpg',
+          width: 1200,
+          height: 900,
+          alt: `Contact ${settings.name} - Mehndi Artist in ${city}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/images/hero-bride.jpg'],
+    },
+  };
+}
 
 export default async function ContactPage() {
   const settings = await fetchSiteSettings();
+  const city = settings.location?.city || settings.contact.city;
+  const altCity = settings.location?.altCity || settings.contact.city;
+  const serviceAvailability =
+    settings.location?.serviceAvailability ||
+    settings.location?.availability ||
+    `${city} Service Area Only`;
+
+  const hours =
+    settings.location?.operatingHours ||
+    settings.location?.businessHours ||
+    settings.contact.operatingHours;
+
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', path: '/' },
     { name: 'Contact', path: '/contact' },
@@ -66,14 +89,14 @@ export default async function ContactPage() {
       <section className="py-16 sm:py-24 bg-gradient-to-b from-[#FAF3EE] to-[#FCF9F4] border-b border-[#EADFD3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex mb-4">
-            <LocationBadge label="Bangalore / Bengaluru Service Area Only" variant="accent" />
+            <LocationBadge label={serviceAvailability} variant="accent" />
           </div>
 
           <SectionHeading
             as="h1"
             eyebrow="Connect With Aayesha"
-            title="Book Mehndi Appointments in Bangalore"
-            description="To ensure personal attention and immediate coordination, all appointments across Bengaluru are managed directly via WhatsApp."
+            title={`Book Mehndi Appointments in ${city}`}
+            description={`To ensure personal attention and immediate coordination, all appointments across ${city}${altCity && altCity !== city ? ` / ${altCity}` : ''} are managed directly via WhatsApp.`}
             align="center"
             showMotif
           />
@@ -137,7 +160,7 @@ export default async function ContactPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircleIcon size={16} className="text-[#1EBE5D] flex-shrink-0" />
-                    <span>Location / venue neighborhood in Bangalore</span>
+                    <span>Location / venue neighborhood in {city}</span>
                   </li>
                 </ul>
               </div>
@@ -200,12 +223,12 @@ export default async function ContactPage() {
                         Instagram Portfolio
                       </h3>
                       <p className="text-xs text-[#847269]">
-                        Real wedding videos & latest Bangalore client work
+                        Real wedding videos & latest client creations
                       </p>
                     </div>
                   </div>
                   <p className="text-xs sm:text-sm text-[#58463D] leading-relaxed mb-4">
-                    Follow along for behind-the-scenes cone mixing, stain evolution reels, and live Bangalore bride transformations.
+                    Follow along for behind-the-scenes cone mixing, stain evolution reels, and live bride transformations.
                   </p>
                   <a
                     href={settings.contact.instagramUrl}
@@ -215,7 +238,7 @@ export default async function ContactPage() {
                   >
                     <span className="flex items-center gap-2">
                       <InstagramIcon size={16} className="text-[#E1306C]" />
-                      <span>{settings.contact.instagramHandle || '@hennabyaayesha'}</span>
+                      <span>{settings.contact.instagramHandle}</span>
                     </span>
                     <ExternalLinkIcon size={14} className="text-[#847269]" />
                   </a>
@@ -231,7 +254,7 @@ export default async function ContactPage() {
                       Operating Hours
                     </h3>
                     <p className="text-sm font-medium text-[#261B16] mt-0.5">
-                      {settings.contact.operatingHours}
+                      {hours}
                     </p>
                   </div>
                 </div>
@@ -240,10 +263,10 @@ export default async function ContactPage() {
                   <MapPinIcon size={20} className="text-[#B95945] flex-shrink-0 mt-0.5" />
                   <div>
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-[#847269]">
-                      Bangalore Exclusive Policy
+                      {city} Service Coverage
                     </h3>
                     <p className="text-xs text-[#58463D] mt-0.5 leading-relaxed">
-                      {settings.contact.serviceNotice} Direct on-location artist travel across all zones in Bengaluru.
+                      {serviceAvailability}. Direct on-location artist travel across {city}.
                     </p>
                   </div>
                 </div>
@@ -253,17 +276,16 @@ export default async function ContactPage() {
         </div>
       </section>
 
-      {/* Bangalore Neighborhoods Banner */}
-      <BangaloreBanner phoneRaw={settings.contact.whatsappPhoneRaw} />
+      {/* Neighborhoods Banner */}
+      <BangaloreBanner settings={settings} phoneRaw={settings.contact.whatsappPhoneRaw} />
 
       {/* WhatsApp & Email CTA Section */}
       <CTASection
         phoneRaw={settings.contact.whatsappPhoneRaw}
         emailAddress={settings.contact.email}
-        title="Ready to Reserve Your Bangalore Mehndi Date?"
+        title={`Ready to Reserve Your ${city} Mehndi Date?`}
         description="Reach out directly on WhatsApp with your date and venue to check artist availability."
       />
     </div>
   );
 }
-

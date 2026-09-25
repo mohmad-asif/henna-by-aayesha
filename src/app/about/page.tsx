@@ -15,39 +15,47 @@ import {
 import { JsonLd, generateBreadcrumbSchema } from '@/lib/schema';
 import { getCanonicalUrl } from '@/config/site';
 
-export const metadata: Metadata = {
-  title: 'About Aayesha | Bridal Mehndi Artist in Bangalore',
-  description:
-    'Meet Aayesha, dedicated bridal and organic mehndi artist based in Bangalore / Bengaluru. Learn about our 100% chemical-free Sojat henna cones and personalized wedding adornments.',
-  alternates: {
-    canonical: '/about',
-  },
-  openGraph: {
-    title: 'About Aayesha | Bridal Mehndi Artist in Bangalore',
-    description:
-      'Meet Aayesha, dedicated bridal and organic mehndi artist based in Bangalore. 100% chemical-free Sojat henna and personalized wedding adornments.',
-    url: getCanonicalUrl('/about'),
-    type: 'website',
-    images: [
-      {
-        url: '/images/aayesha-portrait.jpg',
-        width: 800,
-        height: 1067,
-        alt: 'Aayesha - Professional Mehndi Artist in Bangalore',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'About Aayesha | Bridal Mehndi Artist in Bangalore',
-    description:
-      'Discover the artistry of Aayesha, Bangalore’s bridal henna specialist. 100% natural Rajasthani organic henna.',
-    images: ['/images/aayesha-portrait.jpg'],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await fetchSiteSettings();
+  const city = settings.location?.city || settings.contact.city;
+
+  const title = `About Aayesha | Bridal Mehndi Artist in ${city}`;
+  const description = `Meet Aayesha, dedicated bridal and organic mehndi artist based in ${city}. Learn about our 100% chemical-free Sojat henna cones and personalized wedding adornments.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: '/about',
+    },
+    openGraph: {
+      title,
+      description,
+      url: getCanonicalUrl('/about'),
+      type: 'website',
+      images: [
+        {
+          url: '/images/aayesha-portrait.jpg',
+          width: 800,
+          height: 1067,
+          alt: `Aayesha - Professional Mehndi Artist in ${city}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/images/aayesha-portrait.jpg'],
+    },
+  };
+}
 
 export default async function AboutPage() {
   const settings = await fetchSiteSettings();
+  const city = settings.location?.city || settings.contact.city;
+  const altCity = settings.location?.altCity || settings.contact.city;
+
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', path: '/' },
     { name: 'About Aayesha', path: '/about' },
@@ -60,13 +68,16 @@ export default async function AboutPage() {
       <section className="py-16 sm:py-24 bg-gradient-to-b from-[#FAF3EE] to-[#FCF9F4] border-b border-[#EADFD3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex mb-4">
-            <LocationBadge label="Based in Bangalore / Bengaluru" variant="accent" />
+            <LocationBadge
+              label={`Based in ${city}${altCity && altCity !== city ? ` / ${altCity}` : ''}`}
+              variant="accent"
+            />
           </div>
 
           <SectionHeading
             as="h1"
             eyebrow="The Artist’s Journey"
-            title="About Aayesha — Bridal Mehndi Artist in Bangalore"
+            title={`About Aayesha — Bridal Mehndi Artist in ${city}`}
             description="Weaving classical Indian mehndi heritage, love, and botanical craft into deeply personal bridal adornments with 100% chemical-free organic henna."
             align="center"
             showMotif
@@ -83,7 +94,7 @@ export default async function AboutPage() {
               <div className="relative aspect-[3/4] rounded-3xl overflow-hidden shadow-xl border-4 border-[#FAF3EE]">
                 <Image
                   src="/images/aayesha-portrait.jpg"
-                  alt="Aayesha holding henna cone in her Bangalore studio"
+                  alt={`Aayesha holding henna cone in her ${city} studio`}
                   fill
                   priority
                   sizes="(max-width: 1024px) 100vw, 40vw"
@@ -114,7 +125,7 @@ export default async function AboutPage() {
 
               <div className="mt-6 space-y-4 text-base text-[#58463D] leading-relaxed">
                 <p>
-                  I began my artistic journey with mehndi out of a deep reverence for how a simple leaf from the arid soils of Rajasthan could transform into such intricate, fragrant lace upon the skin. For every bride across Bangalore, I approach each celebration as an unrepeatable canvas — honoring her unique heritage, personal narrative, and bridal aesthetic.
+                  I began my artistic journey with mehndi out of a deep reverence for how a simple leaf from the arid soils of Rajasthan could transform into such intricate, fragrant lace upon the skin. For every bride across {city}, I approach each celebration as an unrepeatable canvas — honoring her unique heritage, personal narrative, and bridal aesthetic.
                 </p>
 
                 <p>
@@ -144,7 +155,7 @@ export default async function AboutPage() {
                     <span>Storytelling Motifs</span>
                   </div>
                   <p className="text-xs text-[#703D24] mt-1">
-                    Couple portraits, proposal memories, and sacred mantras woven into jaal.
+                    Couple portraits, proposal memories, and sacred motifs woven into jaal.
                   </p>
                 </div>
               </div>
@@ -180,7 +191,7 @@ export default async function AboutPage() {
                 WhatsApp Consultation
               </h3>
               <p className="text-xs sm:text-sm text-[#58463D] mt-2 leading-relaxed">
-                Connect directly with Aayesha to discuss dates, venue in Bangalore, and your desired style (Bridal couture, Arabic, or Minimalist).
+                Connect directly with Aayesha to discuss dates, venue in {city}, and your desired style (Bridal couture, Arabic, or Minimalist).
               </p>
             </div>
 
@@ -200,7 +211,7 @@ export default async function AboutPage() {
                 Unhurried Application
               </h3>
               <p className="text-xs sm:text-sm text-[#58463D] mt-2 leading-relaxed">
-                Aayesha arrives at your Bangalore doorstep with full equipment, ensuring a calm, patient, and enjoyable sitting.
+                Aayesha arrives at your {city} doorstep with full equipment, ensuring a calm, patient, and enjoyable sitting.
               </p>
             </div>
 
@@ -217,15 +228,15 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* Bangalore Specific Section */}
-      <BangaloreBanner phoneRaw={settings.contact.whatsappPhoneRaw} />
+      {/* Location Specific Section */}
+      <BangaloreBanner settings={settings} phoneRaw={settings.contact.whatsappPhoneRaw} />
 
       {/* WhatsApp CTA */}
       <CTASection
         phoneRaw={settings.contact.whatsappPhoneRaw}
         emailAddress={settings.contact.email}
         title="Speak with Aayesha About Your Wedding Date"
-        description="Share your Bangalore venue, date, and preferred design package on WhatsApp for personal guidance and availability."
+        description={`Share your ${city} venue, date, and preferred design package on WhatsApp for personal guidance and availability.`}
       />
     </div>
   );

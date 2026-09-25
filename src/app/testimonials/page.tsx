@@ -10,43 +10,51 @@ import { CTASection } from '@/components/sections/cta-section';
 
 import { JsonLd, generateBreadcrumbSchema } from '@/lib/schema';
 import { getCanonicalUrl } from '@/config/site';
+import { formatLocation } from '@/lib/settings/location';
 
-export const metadata: Metadata = {
-  title: 'Bride Reviews & Testimonials Bangalore',
-  description:
-    'Read real verified experiences from Bangalore brides who chose Henna by Aayesha for their wedding, engagement, and festive celebrations.',
-  alternates: {
-    canonical: '/testimonials',
-  },
-  openGraph: {
-    title: 'Bride Reviews & Testimonials Bangalore | Henna by Aayesha',
-    description:
-      'Read real verified experiences from Bangalore brides who chose Henna by Aayesha for their wedding, engagement, and festive celebrations.',
-    url: getCanonicalUrl('/testimonials'),
-    type: 'website',
-    images: [
-      {
-        url: '/images/hero-bride.jpg',
-        width: 1200,
-        height: 900,
-        alt: 'Bride Reviews & Testimonials - Henna by Aayesha Bangalore',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Bride Reviews & Testimonials Bangalore | Henna by Aayesha',
-    description:
-      'Real client reviews from Bangalore brides. 100% natural organic henna.',
-    images: ['/images/hero-bride.jpg'],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await fetchSiteSettings();
+  const city = settings.location?.city || settings.contact.city;
+
+  const title = `Bride Reviews & Testimonials ${city} | Henna by Aayesha`;
+  const description = `Read real verified experiences from ${city} brides who chose Henna by Aayesha for their wedding, engagement, and festive celebrations.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: '/testimonials',
+    },
+    openGraph: {
+      title,
+      description,
+      url: getCanonicalUrl('/testimonials'),
+      type: 'website',
+      images: [
+        {
+          url: '/images/hero-bride.jpg',
+          width: 1200,
+          height: 900,
+          alt: `Bride Reviews & Testimonials - Henna by Aayesha ${city}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/images/hero-bride.jpg'],
+    },
+  };
+}
 
 export default async function TestimonialsPage() {
   const [testimonials, settings] = await Promise.all([
     fetchTestimonials(),
     fetchSiteSettings(),
   ]);
+
+  const city = settings.location?.city || settings.contact.city;
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', path: '/' },
@@ -60,13 +68,13 @@ export default async function TestimonialsPage() {
       <section className="py-16 sm:py-20 bg-gradient-to-b from-[#FAF3EE] to-[#FCF9F4] border-b border-[#EADFD3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex mb-4">
-            <LocationBadge label="Bangalore Bride Reviews" variant="accent" />
+            <LocationBadge label={`${city} Bride Reviews`} variant="accent" />
           </div>
 
           <SectionHeading
             as="h1"
             eyebrow="Heartfelt Words"
-            title="Bangalore Bride Reviews & Client Stories"
+            title={`${city} Bride Reviews & Client Stories`}
             description="Nothing brings us greater joy than seeing our brides smile as their henna oxidizes into a deep mahogany stain. Read their personal experiences."
             align="center"
             showMotif
@@ -83,7 +91,7 @@ export default async function TestimonialsPage() {
               5.0 / 5.0 Average Rating
             </span>
             <span className="text-xs text-[#847269]">
-              • 100% Verified Bangalore Brides
+              • 100% Verified {city} Brides
             </span>
           </div>
         </div>
@@ -107,12 +115,15 @@ export default async function TestimonialsPage() {
               Were You an Aayesha Bride?
             </h3>
             <p className="mt-2 text-xs sm:text-sm text-[#58463D] leading-relaxed">
-              We would be honored to feature your wedding stain photos and memories in our Bangalore gallery! Drop us a message on WhatsApp.
+              We would be honored to feature your wedding stain photos and memories in our {city} gallery! Drop us a message on WhatsApp.
             </p>
             <div className="mt-5">
               <WhatsAppButton
                 phoneRaw={settings.contact.whatsappPhoneRaw}
-                message="Hi Aayesha, I wanted to share my bridal stain photos and feedback from my wedding in Bangalore!"
+                message={formatLocation(
+                  'Hi Aayesha, I wanted to share my bridal stain photos and feedback from my wedding in {city}!',
+                  settings
+                )}
                 label="Share Your Feedback on WhatsApp"
                 variant="outline"
                 size="md"
@@ -127,7 +138,10 @@ export default async function TestimonialsPage() {
         phoneRaw={settings.contact.whatsappPhoneRaw}
         emailAddress={settings.contact.email}
         title="Experience the Aayesha Difference for Yourself"
-        description="Reserve your bridal date or event slot in Bangalore by chatting with Aayesha directly on WhatsApp."
+        description={formatLocation(
+          'Reserve your bridal date or event slot in {city} by chatting with Aayesha directly on WhatsApp.',
+          settings
+        )}
       />
     </div>
   );

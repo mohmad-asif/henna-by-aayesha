@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { fetchServices, fetchSiteSettings } from '@/lib/supabase/data';
-import { faqsData } from '@/data/faqs';
+import { fetchServices, fetchSiteSettings, fetchFaqs } from '@/lib/supabase/data';
 import { ServiceCard } from '@/components/cards/service-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { LocationBadge } from '@/components/ui/location-badge';
@@ -11,43 +10,61 @@ import { WhatsAppButton } from '@/components/ui/whatsapp-button';
 
 import { JsonLd, generateBreadcrumbSchema, generateServiceSchema } from '@/lib/schema';
 import { getCanonicalUrl } from '@/config/site';
+import { formatLocation } from '@/lib/settings/location';
 
-export const metadata: Metadata = {
-  title: 'Bridal Mehndi Services & Packages Bangalore',
-  description:
-    'Comprehensive bridal, sangeet, and festive mehndi packages in Bangalore. On-location doorstep service across Bengaluru with 100% natural organic henna.',
-  alternates: {
-    canonical: '/services',
-  },
-  openGraph: {
-    title: 'Bridal Mehndi Services & Packages Bangalore | Henna by Aayesha',
-    description:
-      'Comprehensive bridal, sangeet, and festive mehndi packages in Bangalore. On-location doorstep service across Bengaluru with 100% natural organic henna.',
-    url: getCanonicalUrl('/services'),
-    type: 'website',
-    images: [
-      {
-        url: '/images/hero-bride.jpg',
-        width: 1200,
-        height: 900,
-        alt: 'Bridal Mehndi Services in Bangalore by Henna by Aayesha',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Bridal Mehndi Services Bangalore | Henna by Aayesha',
-    description:
-      'Explore bridal, engagement, and festive mehndi packages in Bangalore. 100% organic henna.',
-    images: ['/images/hero-bride.jpg'],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await fetchSiteSettings();
+  const city = settings.location?.city || settings.contact.city;
+
+  const title = settings.seo?.servicesTitle
+    ? formatLocation(settings.seo.servicesTitle, settings)
+    : `Bridal Mehndi Services & Packages in ${city}`;
+
+  const description = settings.seo?.servicesDescription
+    ? formatLocation(settings.seo.servicesDescription, settings)
+    : `Comprehensive bridal, sangeet, and festive mehndi packages in ${city}. On-location doorstep service across ${city} with 100% natural organic henna.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: '/services',
+    },
+    openGraph: {
+      title,
+      description,
+      url: getCanonicalUrl('/services'),
+      type: 'website',
+      images: [
+        {
+          url: '/images/hero-bride.jpg',
+          width: 1200,
+          height: 900,
+          alt: `Bridal Mehndi Services in ${city} by ${settings.name}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/images/hero-bride.jpg'],
+    },
+  };
+}
 
 export default async function ServicesPage() {
-  const [services, settings] = await Promise.all([
+  const [services, settings, faqs] = await Promise.all([
     fetchServices(),
     fetchSiteSettings(),
+    fetchFaqs(),
   ]);
+
+  const city = settings.location?.city || settings.contact.city;
+  const serviceAvailability =
+    settings.location?.serviceAvailability ||
+    settings.location?.availability ||
+    `Direct On-Location Visits in ${city} Only`;
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', path: '/' },
@@ -62,13 +79,13 @@ export default async function ServicesPage() {
       <section className="py-16 sm:py-24 bg-gradient-to-b from-[#FAF3EE] to-[#FCF9F4] border-b border-[#EADFD3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex mb-4">
-            <LocationBadge label="Direct On-Location Visits in Bangalore Only" variant="accent" />
+            <LocationBadge label={serviceAvailability} variant="accent" />
           </div>
 
           <SectionHeading
             as="h1"
             eyebrow="Bespoke Offerings"
-            title="Bridal & Festive Mehndi Services in Bangalore"
+            title={`Bridal & Festive Mehndi Services in ${city}`}
             description="Whether celebrating your wedding day, engagement, or festive milestone, our packages are thoughtfully structured with organic cones, personalized storytelling, and complimentary aftercare."
             align="center"
             showMotif
@@ -111,7 +128,7 @@ export default async function ServicesPage() {
                 WhatsApp Inquiry
               </h3>
               <p className="mt-2 text-xs text-[#58463D]">
-                Message Aayesha with your wedding/event date, time, and Bangalore location area.
+                Message Aayesha with your wedding/event date, time, and {city} location area.
               </p>
             </div>
 
@@ -161,21 +178,21 @@ export default async function ServicesPage() {
             align="center"
             eyebrow="Helpful Information"
             title="Frequently Asked Questions"
-            description="Common questions about our organic henna, appointments, and Bangalore coverage."
+            description={`Common questions about our organic henna, appointments, and ${city} coverage.`}
             showMotif
           />
 
           <div className="mt-12 space-y-4">
-            {faqsData.map((faq, idx) => (
+            {faqs.map((faq) => (
               <div
-                key={idx}
+                key={faq.id}
                 className="bg-white p-6 rounded-2xl border border-[#EADFD3] shadow-xs"
               >
                 <h3 className="font-serif-heading text-lg sm:text-xl font-semibold text-[#261B16] leading-snug">
-                  {faq.question}
+                  {formatLocation(faq.question, settings)}
                 </h3>
-                <p className="mt-3 text-xs sm:text-sm text-[#58463D] leading-relaxed">
-                  {faq.answer}
+                <p className="mt-3 text-xs sm:text-sm text-[#58463D] leading-relaxed whitespace-pre-line">
+                  {formatLocation(faq.answer, settings)}
                 </p>
               </div>
             ))}
@@ -187,7 +204,7 @@ export default async function ServicesPage() {
             </p>
             <WhatsAppButton
               phoneRaw={settings.contact.whatsappPhoneRaw}
-              message="Hi Aayesha, I have a question about your mehndi services in Bangalore."
+              message={`Hi Aayesha, I have a question about your mehndi services in ${city}.`}
               label="Ask a Question on WhatsApp"
               variant="outline"
               size="md"
@@ -196,13 +213,13 @@ export default async function ServicesPage() {
         </div>
       </section>
 
-      {/* Bangalore Specific Notice */}
-      <BangaloreBanner />
+      {/* Service-area Notice */}
+      <BangaloreBanner settings={settings} phoneRaw={settings.contact.whatsappPhoneRaw} />
 
       {/* Bottom CTA */}
       <CTASection
         title="Check Availability for Your Wedding or Event"
-        description="Share your Bangalore venue and preferred package with Aayesha directly on WhatsApp."
+        description={`Share your ${city} venue and preferred package with Aayesha directly on WhatsApp.`}
         phoneRaw={settings.contact.whatsappPhoneRaw}
       />
     </div>

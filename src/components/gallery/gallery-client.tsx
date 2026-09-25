@@ -14,6 +14,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from '@/components/ui/icons';
+import { trackGalleryImageOpen } from '@/lib/analytics/events';
 
 const categories = [
   { label: 'All Photos', value: 'all' },
@@ -79,6 +80,7 @@ export function GalleryClient({
   }, [lightboxIndex, handleClose, handlePrev, handleNext]);
 
   const currentItem = lightboxIndex !== null ? filteredItems[lightboxIndex] : null;
+  const city = settings?.location?.city || settings?.contact.city || 'Bengaluru';
 
   return (
     <div>
@@ -86,14 +88,14 @@ export function GalleryClient({
       <section className="py-16 sm:py-20 bg-gradient-to-b from-[#FAF3EE] to-[#FCF9F4] border-b border-[#EADFD3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex mb-4">
-            <LocationBadge label="Created in Bangalore / Bengaluru" variant="accent" />
+            <LocationBadge label={`Handcrafted in ${city}`} variant="accent" />
           </div>
 
           <SectionHeading
             as="h1"
             eyebrow="Visual Lookbook"
-            title="Mehndi Gallery & Bridal Lookbook in Bangalore"
-            description="A curated gallery of real brides, intricate bridal feet motifs, graceful Arabic trails, and festive celebrations handcrafted across Bangalore."
+            title={`Mehndi Gallery & Bridal Lookbook in ${city}`}
+            description={`A curated gallery of real brides, intricate bridal feet motifs, graceful Arabic trails, and festive celebrations handcrafted across ${city}.`}
             align="center"
             showMotif
           />
@@ -142,7 +144,11 @@ export function GalleryClient({
                   key={item.id}
                   item={item}
                   priority={idx < 3}
-                  onClick={() => setLightboxIndex(idx)}
+                  phoneRaw={settings?.contact.whatsappPhoneRaw}
+                  onClick={() => {
+                    setLightboxIndex(idx);
+                    trackGalleryImageOpen({ title: item.title, category: item.category });
+                  }}
                 />
               ))}
             </div>
@@ -240,7 +246,7 @@ export function GalleryClient({
             </div>
 
             <WhatsAppButton
-              message={`Hi Aayesha, I saw the photo "${currentItem.title}" in your gallery and would like to ask about a similar mehndi design in Bangalore.`}
+              message={`Hi Aayesha, I saw the photo "${currentItem.title}" in your gallery and would like to ask about a similar mehndi design in ${city}.`}
               phoneRaw={settings?.contact.whatsappPhoneRaw}
               label="Inquire on WhatsApp"
               size="md"
@@ -254,9 +260,10 @@ export function GalleryClient({
       {/* Bottom CTA */}
       <CTASection
         title="Inspired by a Design in Our Lookbook?"
-        description="Save your favorite photo and send it directly to Aayesha on WhatsApp for a custom consultation for your Bangalore date."
+        description={`Save your favorite photo and send it directly to Aayesha on WhatsApp for a custom consultation for your ${city} date.`}
         phoneRaw={settings?.contact.whatsappPhoneRaw}
         emailAddress={settings?.contact.email}
+        city={city}
       />
     </div>
   );

@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { getCanonicalUrl } from '@/config/site';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+import { PublicChrome } from '@/components/layout/public-layout';
 import { fetchSiteSettings } from '@/lib/supabase/data';
+import { SiteSettingsProvider } from '@/components/providers/site-settings-provider';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -16,7 +16,6 @@ const cormorant = Cormorant_Garamond({
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
   variable: '--font-jakarta',
   display: 'swap',
 });
@@ -125,11 +124,11 @@ export default async function RootLayout({
         >
           Skip to main content
         </a>
-        <Header settings={siteSettings} />
-        <main id="main-content" className="flex-grow focus:outline-none" tabIndex={-1}>
-          {children}
-        </main>
-        <Footer settings={siteSettings} />
+        <SiteSettingsProvider settings={siteSettings}>
+          <PublicChrome settings={siteSettings}>
+            {children}
+          </PublicChrome>
+        </SiteSettingsProvider>
       </body>
     </html>
   );

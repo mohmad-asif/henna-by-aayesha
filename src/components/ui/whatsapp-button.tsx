@@ -1,6 +1,10 @@
+'use client';
+
 import React from 'react';
 import { buildWhatsAppUrl } from '@/config/site';
 import { WhatsAppIcon } from './icons';
+import { useSiteSettings } from '@/components/providers/site-settings-provider';
+import { trackEvent } from '@/lib/analytics/events';
 
 export interface WhatsAppButtonProps {
   /** Optional contextual pre-filled message. Defaults to centralized default */
@@ -19,6 +23,10 @@ export interface WhatsAppButtonProps {
   fullWidth?: boolean;
   /** Additional CSS class names */
   className?: string;
+  /** Optional click handler callback */
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  /** Optional analytics event name to fire on click */
+  trackEventName?: string;
 }
 
 /**
@@ -37,8 +45,28 @@ export function WhatsAppButton({
   showIcon = true,
   fullWidth = false,
   className = '',
+  onClick,
+  trackEventName,
 }: WhatsAppButtonProps) {
-  const url = buildWhatsAppUrl(message, phoneRaw);
+  const contextSettings = useSiteSettings();
+  const effectivePhoneRaw =
+    phoneRaw !== undefined
+      ? phoneRaw
+      : contextSettings?.contact.whatsappPhoneRaw;
+  const url = buildWhatsAppUrl(message, effectivePhoneRaw);
+
+  if (!url) {
+    return null;
+  }
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (trackEventName) {
+      trackEvent(trackEventName, { label });
+    }
+    if (onClick) {
+      onClick(e);
+    }
+  };
 
   const baseStyles =
     'inline-flex items-center justify-center font-medium rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] select-none text-decoration-none group';
@@ -73,6 +101,7 @@ export function WhatsAppButton({
       href={url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={handleClick}
       className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${widthStyle} ${className}`.trim()}
       aria-label={`${label} (opens WhatsApp chat)`}
     >

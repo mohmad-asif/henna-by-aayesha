@@ -5,36 +5,41 @@ import { GalleryClient } from '@/components/gallery/gallery-client';
 import { JsonLd, generateBreadcrumbSchema } from '@/lib/schema';
 import { getCanonicalUrl } from '@/config/site';
 
-export const metadata: Metadata = {
-  title: 'Mehndi Gallery & Lookbook Bangalore',
-  description:
-    'A curated lookbook of exquisite bridal, Arabic, and festive henna creations by Aayesha across Bangalore / Bengaluru.',
-  alternates: {
-    canonical: '/gallery',
-  },
-  openGraph: {
-    title: 'Mehndi Gallery & Lookbook Bangalore | Henna by Aayesha',
-    description:
-      'A curated lookbook of exquisite bridal, Arabic, and festive henna creations by Aayesha across Bangalore / Bengaluru.',
-    url: getCanonicalUrl('/gallery'),
-    type: 'website',
-    images: [
-      {
-        url: '/images/hero-bride.jpg',
-        width: 1200,
-        height: 900,
-        alt: 'Mehndi Gallery Bangalore - Henna by Aayesha',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Mehndi Gallery & Lookbook Bangalore | Henna by Aayesha',
-    description:
-      'Curated bridal and festival mehndi lookbook from real clients in Bangalore.',
-    images: ['/images/hero-bride.jpg'],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await fetchSiteSettings();
+  const city = settings.location?.city || settings.contact.city;
+
+  const title = `Mehndi Gallery & Lookbook in ${city} | ${settings.name}`;
+  const description = `A curated lookbook of exquisite bridal, Arabic, and festive henna creations by Aayesha across ${city}.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: '/gallery',
+    },
+    openGraph: {
+      title,
+      description,
+      url: getCanonicalUrl('/gallery'),
+      type: 'website',
+      images: [
+        {
+          url: '/images/hero-bride.jpg',
+          width: 1200,
+          height: 900,
+          alt: `Mehndi Gallery ${city} - ${settings.name}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/images/hero-bride.jpg'],
+    },
+  };
+}
 
 export default async function GalleryPage() {
   const [items, settings] = await Promise.all([

@@ -77,11 +77,36 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-serif-heading text-2xl font-semibold text-[#261B16] mb-3">
-              4. Website Cookies & Analytics
+              4. Privacy-Preserving Website Analytics & Visitor Metrics
             </h2>
-            <p>
-              This website is designed for optimal performance and does not employ intrusive tracking cookies or third-party ad profiling. Standard server logs and privacy-preserving metrics may be collected solely to maintain technical stability and ensure responsive design across devices.
-            </p>
+            <div className="space-y-3">
+              <p>
+                To provide a seamless browsing experience and understand which bridal mehndi styles are most popular in Bangalore and surrounding regions, we employ a first-party, privacy-preserving analytics system.
+              </p>
+              <div>
+                <h3 className="font-semibold text-[#261B16] text-sm mb-1">Information We Collect:</h3>
+                <ul className="list-disc list-inside space-y-1 text-sm text-[#703D24]">
+                  <li>Pseudonymous visitor and session identifiers stored locally in your browser</li>
+                  <li>Pages visited, navigation timestamps, and approximate time spent exploring designs</li>
+                  <li>Referring URLs, search sources, and campaign parameters (UTM tags)</li>
+                  <li>Device category (desktop, mobile, tablet), browser type, and screen dimensions</li>
+                  <li>Approximate geographic area (e.g. Bengaluru, Karnataka, India derived from routing headers; never exact GPS)</li>
+                  <li>Interaction events such as WhatsApp inquiry clicks, appointment buttons, and portfolio lookbook views</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold text-[#261B16] text-sm mb-1">Information We Strictly NEVER Collect:</h3>
+                <ul className="list-disc list-inside space-y-1 text-sm text-[#703D24]">
+                  <li>Passwords, authentication tokens, or payment card information</li>
+                  <li>Personal text entered into private chat dialogues or form drafts</li>
+                  <li>Precise GPS location or street-level addresses</li>
+                  <li>Cross-site third-party ad profiling or tracking across other websites</li>
+                </ul>
+              </div>
+              <p>
+                <strong>Consent & Preferences:</strong> You can accept, customize, or decline analytics tracking at any time using our on-screen privacy banner. When declined, no tracking events are transmitted. Analytics logs are also subject to automatic retention cleanup and are purged periodically.
+              </p>
+            </div>
           </section>
 
           <section>

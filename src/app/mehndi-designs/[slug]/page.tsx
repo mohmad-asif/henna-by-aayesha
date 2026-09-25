@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/icons';
 import { JsonLd, generateBreadcrumbSchema } from '@/lib/schema';
 import { getCanonicalUrl } from '@/config/site';
+import { TrackItemView } from '@/components/analytics/track-item-view';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -35,11 +36,16 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const design = await fetchDesignBySlug(slug);
+  const [design, settings] = await Promise.all([
+    fetchDesignBySlug(slug),
+    fetchSiteSettings(),
+  ]);
+
+  const city = settings.location?.city || settings.contact.city;
 
   if (!design) {
     return {
-      title: 'Design Not Found | Henna by Aayesha Bangalore',
+      title: `Design Not Found | ${settings.name} ${city}`,
     };
   }
 
@@ -50,13 +56,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : `${getCanonicalUrl()}${design.image}`;
 
   return {
-    title: `${design.title} | Bridal Mehndi Bangalore`,
-    description: `${design.shortDescription} Handcrafted in Bangalore using 100% natural organic henna cones. Doorstep appointments via WhatsApp.`,
+    title: `${design.title} | Bridal Mehndi in ${city}`,
+    description: `${design.shortDescription} Handcrafted in ${city} using 100% natural organic henna cones. Doorstep appointments via WhatsApp.`,
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title: `${design.title} | Bridal Mehndi Bangalore`,
+      title: `${design.title} | Bridal Mehndi in ${city}`,
       description: design.shortDescription,
       url: absoluteUrl,
       type: 'article',
@@ -65,13 +71,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: imageUrl,
           width: 1200,
           height: 900,
-          alt: `${design.title} - Bridal Mehndi Bangalore by Aayesha`,
+          alt: `${design.title} - Bridal Mehndi in ${city} by ${settings.name}`,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${design.title} | Henna by Aayesha Bangalore`,
+      title: `${design.title} | ${settings.name} ${city}`,
       description: design.shortDescription,
       images: [imageUrl],
     },
@@ -89,8 +95,13 @@ export default async function DesignDetailPage({ params }: Props) {
     notFound();
   }
 
+  const city = settings.location?.city || settings.contact.city;
+  const serviceAvailability =
+    settings.location?.serviceAvailability ||
+    settings.location?.availability ||
+    `Available in ${city} Only`;
+
   const relatedDesigns = getRelatedDesigns(design.slug, 3);
-  const whatsappBookingMessage = `Hi Aayesha, I am interested in the ${design.title} mehndi design. I would like to book an appointment in Bangalore.`;
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', path: '/' },
@@ -100,6 +111,7 @@ export default async function DesignDetailPage({ params }: Props) {
 
   return (
     <div className="bg-[#FCF9F4] min-h-screen pb-20">
+      <TrackItemView type="design" slug={design.slug} title={design.title} category={design.category} />
       <JsonLd data={breadcrumbSchema} />
       {/* Breadcrumbs & Location Bar */}
       <div className="bg-[#FAF3EE] border-b border-[#EADFD3] py-3.5">
@@ -118,7 +130,7 @@ export default async function DesignDetailPage({ params }: Props) {
             </span>
           </nav>
 
-          <LocationBadge label="Available in Bangalore Only" size="sm" variant="accent" />
+          <LocationBadge label={serviceAvailability} size="sm" variant="accent" />
         </div>
       </div>
 
@@ -132,7 +144,7 @@ export default async function DesignDetailPage({ params }: Props) {
                 <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-[#F5ECE4]">
                   <Image
                     src={design.image}
-                    alt={`${design.title} - ${design.categoryLabel} bridal mehndi design in Bangalore by Aayesha`}
+                    alt={`${design.title} - ${design.categoryLabel} bridal mehndi design in ${city} by Aayesha`}
                     fill
                     priority
                     sizes="(max-width: 1024px) 100vw, 50vw"
@@ -191,7 +203,7 @@ export default async function DesignDetailPage({ params }: Props) {
                     <MapPinIcon size={18} className="text-[#C29B4D] flex-shrink-0" />
                     <div>
                       <div className="text-[11px] text-[#847269] uppercase font-medium">Service Location</div>
-                      <div className="text-xs sm:text-sm font-semibold text-[#4E2714]">Bangalore Doorstep</div>
+                      <div className="text-xs sm:text-sm font-semibold text-[#4E2714]">{city} Doorstep</div>
                     </div>
                   </div>
                 </div>
@@ -246,26 +258,34 @@ export default async function DesignDetailPage({ params }: Props) {
                     Appointments via WhatsApp Only
                   </span>
                   <span className="text-xs text-[#847269]">
-                    Bangalore City Limits
+                    {city} Service Coverage
                   </span>
                 </div>
 
                 <p className="text-xs sm:text-sm text-[#58463D] mb-5">
-                  Ready to book this design for your upcoming celebration? Connect directly with Aayesha to confirm date availability and obtain package pricing.
+                  Ready to book this design for your upcoming celebration? Connect directly with Aayesha on WhatsApp to confirm date availability and obtain package pricing.
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <WhatsAppButton
-                    message={whatsappBookingMessage}
+                    message={`Hi Aayesha, I would like to book this mehndi design.\n\nDesign: ${design.title}\n\nPlease let me know the availability and details.`}
                     phoneRaw={settings.contact.whatsappPhoneRaw}
-                    label="Inquire This Design on WhatsApp"
+                    label="Book This Design on WhatsApp"
                     size="lg"
                     variant="whatsapp"
                     fullWidth
                   />
+                  <WhatsAppButton
+                    message={`Hi Aayesha, I found this mehndi design on your website and would like to know more about it.\n\nDesign: ${design.title}`}
+                    phoneRaw={settings.contact.whatsappPhoneRaw}
+                    label="Ask About Design"
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                  />
                   <EmailButton
                     emailAddress={settings.contact.email}
-                    subject={`Inquiry: ${design.title} (Bangalore)`}
+                    subject={`Inquiry: ${design.title} (${city})`}
                     size="lg"
                     variant="outline"
                     className="w-full sm:w-auto"
@@ -300,7 +320,11 @@ export default async function DesignDetailPage({ params }: Props) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {relatedDesigns.map((related) => (
-                <DesignCard key={related.id} design={related} />
+                <DesignCard
+                  key={related.id}
+                  design={related}
+                  phoneRaw={settings.contact.whatsappPhoneRaw}
+                />
               ))}
             </div>
           </div>

@@ -244,9 +244,6 @@ export default function AdminServicesPage() {
           <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
             Services & Packages
           </h1>
-          <p className="text-xs sm:text-sm text-[#703D24] mt-1">
-            Manage bridal packages, sangeet group rates, and festival appointments in Bangalore.
-          </p>
         </div>
 
         <button
@@ -259,11 +256,10 @@ export default function AdminServicesPage() {
 
       {statusMsg && (
         <div
-          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
-            statusMsg.type === 'success'
+          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${statusMsg.type === 'success'
               ? 'bg-[#EAFBF0] border-[#D0F4DE] text-[#1EBE5D]'
               : 'bg-[#FDF2F2] border-[#F8D7DA] text-[#9B2C2C]'
-          }`}
+            }`}
         >
           {statusMsg.text}
         </div>
@@ -314,11 +310,10 @@ export default function AdminServicesPage() {
                     <td className="py-3.5 px-4 text-center">
                       <button
                         onClick={() => handleToggleFeatured(service)}
-                        className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
-                          service.featured
+                        className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${service.featured
                             ? 'bg-[#F9F5EA] text-[#7E5E1C] border border-[#ECDDBF]'
                             : 'bg-gray-100 text-gray-500'
-                        }`}
+                          }`}
                       >
                         {service.featured ? '★ Most Popular' : 'Standard'}
                       </button>
@@ -326,11 +321,10 @@ export default function AdminServicesPage() {
                     <td className="py-3.5 px-4 text-center">
                       <button
                         onClick={() => handleToggleActive(service)}
-                        className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-colors ${
-                          service.active
+                        className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-colors ${service.active
                             ? 'bg-[#EAFBF0] text-[#1EBE5D] border border-[#D0F4DE]'
                             : 'bg-red-50 text-red-500 border border-red-200'
-                        }`}
+                          }`}
                       >
                         {service.active ? 'Active' : 'Hidden'}
                       </button>

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { siteConfig } from '@/config/site';
+import { siteConfig, buildWhatsAppUrl } from '@/config/site';
 import {
   HennaFloralMotif,
   MapPinIcon,
@@ -11,10 +11,31 @@ import {
 } from '@/components/ui/icons';
 import { WhatsAppButton } from '@/components/ui/whatsapp-button';
 import { SiteConfig } from '@/types';
+import { formatLocation } from '@/lib/settings/location';
 
 export function Footer({ settings }: { settings?: SiteConfig }) {
   const currentConfig = settings || siteConfig;
   const currentYear = new Date().getFullYear();
+
+  const city = currentConfig.location?.city || currentConfig.contact.city;
+  const country = currentConfig.location?.country || currentConfig.contact.country;
+  const hours =
+    currentConfig.location?.operatingHours ||
+    currentConfig.location?.businessHours ||
+    currentConfig.contact.operatingHours;
+
+  const footerDesc = currentConfig.footer?.description
+    ? formatLocation(currentConfig.footer.description, currentConfig)
+    : `Professional, bespoke bridal and festive mehndi artistry handcrafted with 100% natural, chemical-free Rajasthani organic henna. Dedicated to bringing timeless Indian elegance to modern brides across ${city}.`;
+
+  const copyrightText = currentConfig.footer?.copyrightText
+    ? formatLocation(currentConfig.footer.copyrightText, currentConfig).replace('{year}', currentYear.toString())
+    : `© ${currentYear} ${currentConfig.name}. All rights reserved.`;
+
+  // Dynamic social links
+  const socialLinks = currentConfig.socialLinks
+    ? currentConfig.socialLinks.filter((s) => s.enabled && s.url?.trim())
+    : [];
 
   return (
     <footer className="bg-[#2E160C] text-[#F5ECE4] border-t border-[#4E2714] mt-auto">
@@ -30,7 +51,7 @@ export function Footer({ settings }: { settings?: SiteConfig }) {
                 Planning your wedding or special occasion?
               </p>
               <p className="text-xs sm:text-sm text-[#D4C3B3] mt-0.5">
-                Reserve your bridal date or festive slot in Bangalore directly on WhatsApp.
+                Reserve your bridal date or festive slot in {city} directly on WhatsApp.
               </p>
             </div>
           </div>
@@ -53,17 +74,17 @@ export function Footer({ settings }: { settings?: SiteConfig }) {
             <Link href="/" className="inline-flex items-center gap-2.5 mb-4 group">
               <HennaFloralMotif size={24} className="text-[#C29B4D]" />
               <span className="font-serif-heading text-2xl font-bold text-white tracking-tight">
-                Henna by Aayesha
+                {currentConfig.name}
               </span>
             </Link>
 
             <p className="text-sm text-[#D4C3B3] leading-relaxed max-w-sm">
-              Professional, bespoke bridal and festive mehndi artistry handcrafted with 100% natural, chemical-free Rajasthani organic henna. Dedicated to bringing timeless Indian elegance to modern brides.
+              {footerDesc}
             </p>
 
-            {/* Social link */}
-            {currentConfig.contact.instagramUrl && (
-              <div className="mt-5">
+            {/* Social links */}
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              {currentConfig.contact.instagramUrl && (
                 <a
                   href={currentConfig.contact.instagramUrl}
                   target="_blank"
@@ -72,13 +93,27 @@ export function Footer({ settings }: { settings?: SiteConfig }) {
                   aria-label="Follow Henna by Aayesha on Instagram"
                 >
                   <InstagramIcon size={16} className="text-[#E1306C]" />
-                  <span>{currentConfig.contact.instagramHandle || '@hennabyaayesha'}</span>
+                  <span>{currentConfig.contact.instagramHandle}</span>
                 </a>
-              </div>
-            )}
+              )}
+
+              {socialLinks
+                .filter((s) => s.platform.toLowerCase() !== 'instagram')
+                .map((s) => (
+                  <a
+                    key={s.id}
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#D4C3B3] hover:text-[#C29B4D] transition-colors px-3 py-2 rounded-lg bg-[#3C1D10] border border-[#522916]"
+                  >
+                    <span>{s.platform}</span>
+                  </a>
+                ))}
+            </div>
 
             <p className="text-xs text-[#A39184] mt-3">
-              On-location bridal appointments & private studio sessions across Bangalore.
+              On-location bridal appointments & private studio sessions across {city}.
             </p>
           </div>
 
@@ -88,7 +123,13 @@ export function Footer({ settings }: { settings?: SiteConfig }) {
               Explore
             </h2>
             <ul className="space-y-2.5 text-sm">
-              {siteConfig.navLinks.map((link) => (
+              {(currentConfig.navigation && currentConfig.navigation.length > 0
+                ? currentConfig.navigation
+                    .filter((item) => item.enabled !== false)
+                    .sort((a, b) => a.displayOrder - b.displayOrder)
+                    .map((item) => ({ name: item.label, href: item.url }))
+                : siteConfig.navLinks
+              ).map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -124,7 +165,7 @@ export function Footer({ settings }: { settings?: SiteConfig }) {
               </li>
               <li>
                 <Link href="/services" className="hover:text-white transition-colors">
-                  Festival & Karwa Chauth
+                  Festival & Special Occasions
                 </Link>
               </li>
               <li>
@@ -141,20 +182,25 @@ export function Footer({ settings }: { settings?: SiteConfig }) {
               Direct Contact
             </h2>
             <ul className="space-y-3 text-xs sm:text-sm text-[#D4C3B3]">
-              <li className="flex items-start gap-2.5">
-                <WhatsAppIcon size={16} className="text-[#25D366] flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="block text-[11px] text-[#A39184]">WhatsApp Only:</span>
-                  <a
-                    href={`https://wa.me/${currentConfig.contact.whatsappPhoneRaw}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-white hover:text-[#25D366] transition-colors"
-                  >
-                    {currentConfig.contact.whatsappDisplayNumber}
-                  </a>
-                </div>
-              </li>
+              {currentConfig.contact.whatsappPhoneRaw && (
+                <li className="flex items-start gap-2.5">
+                  <WhatsAppIcon size={16} className="text-[#25D366] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="block text-[11px] text-[#A39184]">WhatsApp Only:</span>
+                    <a
+                      href={buildWhatsAppUrl(
+                        currentConfig.contact.whatsappDefaultMessage,
+                        currentConfig.contact.whatsappPhoneRaw
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-white hover:text-[#25D366] transition-colors"
+                    >
+                      {currentConfig.contact.whatsappDisplayNumber}
+                    </a>
+                  </div>
+                </li>
+              )}
 
               <li className="flex items-start gap-2.5">
                 <MailIcon size={16} className="text-[#C29B4D] flex-shrink-0 mt-0.5" />
@@ -173,7 +219,7 @@ export function Footer({ settings }: { settings?: SiteConfig }) {
                 <MapPinIcon size={16} className="text-[#B95945] flex-shrink-0 mt-0.5" />
                 <div>
                   <span className="block text-[11px] text-[#A39184]">City Availability:</span>
-                  <span className="text-white">{currentConfig.contact.city}, {currentConfig.contact.country}</span>
+                  <span className="text-white">{city}, {country}</span>
                 </div>
               </li>
 
@@ -181,7 +227,7 @@ export function Footer({ settings }: { settings?: SiteConfig }) {
                 <ClockIcon size={16} className="text-[#C29B4D] flex-shrink-0 mt-0.5" />
                 <div>
                   <span className="block text-[11px] text-[#A39184]">Hours:</span>
-                  <span>{currentConfig.contact.operatingHours}</span>
+                  <span>{hours}</span>
                 </div>
               </li>
             </ul>
@@ -190,24 +236,23 @@ export function Footer({ settings }: { settings?: SiteConfig }) {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-[#432314] flex flex-col sm:flex-row items-center justify-between text-xs text-[#A39184] gap-4">
-          <p>© {currentYear} {currentConfig.name}. All rights reserved.</p>
+          <p>{copyrightText}</p>
 
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="hover:text-white transition-colors">
-              Privacy Policy
+            <Link href="/about" className="hover:text-white transition-colors">
+              About Studio
             </Link>
             <span>•</span>
-            <Link href="/terms" className="hover:text-white transition-colors">
-              Terms of Service
+            <Link href="/contact" className="hover:text-white transition-colors">
+              Contact & Bookings
             </Link>
           </div>
 
           <p className="text-center sm:text-right">
-            Handcrafted with organic henna in Bangalore • Appointments strictly via WhatsApp.
+            Handcrafted with organic henna in {city} • Appointments strictly via WhatsApp.
           </p>
         </div>
       </div>
     </footer>
   );
 }
-

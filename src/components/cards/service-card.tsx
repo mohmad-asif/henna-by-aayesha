@@ -8,11 +8,13 @@ import { Badge } from '@/components/ui/badge';
 export interface ServiceCardProps {
   service: ServicePackage;
   phoneRaw?: string;
+  city?: string;
 }
 
-export function ServiceCard({ service, phoneRaw }: ServiceCardProps) {
-  const whatsappBookingMessage = `Hi Aayesha, I would like to inquire and check your availability for the "${service.title}" package in Bangalore.`;
+export function ServiceCard({ service, phoneRaw, city = 'Bengaluru' }: ServiceCardProps) {
+  const whatsappBookingMessage = `Hi Aayesha, I would like to inquire and check your availability for the "${service.title}" package in ${city}.`;
   const imageSrc = service.image || '/images/hero-bride.jpg';
+  const travelLabel = service.bangaloreTravel || `${city} Doorstep`;
 
   return (
     <div
@@ -26,7 +28,7 @@ export function ServiceCard({ service, phoneRaw }: ServiceCardProps) {
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#FAF3EE]">
         <Image
           src={imageSrc}
-          alt={`${service.title} - Bridal mehndi service in Bangalore by Henna by Aayesha`}
+          alt={`${service.title} - Bridal mehndi service in ${city} by Henna by Aayesha`}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
@@ -63,7 +65,7 @@ export function ServiceCard({ service, phoneRaw }: ServiceCardProps) {
             {service.description}
           </p>
 
-          {/* Time duration & Bangalore Service */}
+          {/* Time duration & Service Area */}
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 bg-[#FAF6F0] p-3 rounded-xl border border-[#F0E5D8]">
             <div className="flex items-center gap-2 text-xs text-[#58463D]">
               <ClockIcon size={14} className="text-[#B95945] flex-shrink-0" />
@@ -72,7 +74,9 @@ export function ServiceCard({ service, phoneRaw }: ServiceCardProps) {
             </div>
             <div className="flex items-center gap-2 text-xs text-[#58463D]">
               <MapPinIcon size={14} className="text-[#B95945] flex-shrink-0" />
-              <span className="text-[#703D24] font-medium">Bangalore Doorstep</span>
+              <span className="text-[#703D24] font-medium truncate" title={travelLabel}>
+                {travelLabel}
+              </span>
             </div>
           </div>
 
@@ -106,6 +110,7 @@ export function ServiceCard({ service, phoneRaw }: ServiceCardProps) {
             size="md"
             variant={service.recommendedForBridal ? 'whatsapp' : 'primary'}
             fullWidth
+            trackEventName={`Service viewed: ${service.title}`}
           />
         </div>
       </div>

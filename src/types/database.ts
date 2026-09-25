@@ -79,3 +79,64 @@ export interface DbAdminProfile {
   role: string;
   created_at?: string;
 }
+
+export type AIProviderKey =
+  | 'gemini'
+  | 'groq'
+  | 'openrouter'
+  | 'mistral'
+  | 'cohere'
+  | 'cloudflare';
+
+export interface DbAIProvider {
+  id: string;
+  provider_key: AIProviderKey;
+  display_name: string;
+  enabled: boolean;
+  encrypted_api_key?: string | null;
+  encrypted_account_id?: string | null;
+  model: string;
+  priority: number;
+  last_tested_at?: string | null;
+  last_status: 'connected' | 'error' | 'untested';
+  last_error?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type EmbeddingProviderKey = 'gemini' | 'cohere' | 'mistral' | 'openrouter';
+
+export interface DbEmbeddingSettings {
+  id: number;
+  provider_key: EmbeddingProviderKey;
+  model: string;
+  dimensions: number;
+  enabled: boolean;
+  encrypted_api_key?: string | null;
+  last_tested_at?: string | null;
+  last_status: 'connected' | 'error' | 'untested';
+  last_error?: string | null;
+  requires_reindex: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface DbKnowledgeDocument {
+  id: string;
+  source_type: string;
+  source_id: string;
+  title: string;
+  content: string;
+  metadata: Record<string, unknown>;
+  content_hash: string;
+  embedding?: number[] | null;
+  embedding_provider: string;
+  embedding_model: string;
+  is_active: boolean;
+  indexing_status: 'indexed' | 'pending' | 'failed';
+  indexing_error?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+

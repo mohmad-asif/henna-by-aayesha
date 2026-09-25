@@ -21,7 +21,7 @@ export interface EmailButtonProps {
  * centralized contact configuration without hardcoding email strings.
  */
 export function EmailButton({
-  subject = 'Inquiry: Henna by Aayesha Mehndi Services (Bangalore)',
+  subject = 'Inquiry: Henna by Aayesha Mehndi Services',
   body,
   emailAddress,
   label = 'Send an Email',
@@ -32,6 +32,10 @@ export function EmailButton({
   className = '',
 }: EmailButtonProps) {
   const url = buildEmailUrl(subject, body, emailAddress);
+
+  if (!url) {
+    return null;
+  }
 
   const baseStyles =
     'inline-flex items-center justify-center font-medium rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] select-none text-decoration-none';

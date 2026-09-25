@@ -9,10 +9,13 @@ import { WhatsAppButton } from '@/components/ui/whatsapp-button';
 export interface DesignCardProps {
   design: MehndiDesign;
   priority?: boolean;
+  phoneRaw?: string;
+  city?: string;
 }
 
-export function DesignCard({ design, priority = false }: DesignCardProps) {
-  const whatsappInquiryMessage = `Hi Aayesha, I love your "${design.title}" (${design.categoryLabel}) design and would like to inquire about booking this for an event in Bangalore.`;
+export function DesignCard({ design, priority = false, phoneRaw, city }: DesignCardProps) {
+  const locationText = city ? ` in ${city}` : '';
+  const whatsappInquiryMessage = `Hi Aayesha, I love your "${design.title}" (${design.categoryLabel}) design and would like to inquire about booking this for an event${locationText}.`;
 
   return (
     <article className="group bg-white rounded-2xl overflow-hidden border border-[#EADFD3] shadow-xs hover:border-[#D6C1AF] hover:shadow-lg transition-all duration-300 flex flex-col h-full">
@@ -20,7 +23,7 @@ export function DesignCard({ design, priority = false }: DesignCardProps) {
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F6F0E6]">
         <Image
           src={design.image}
-          alt={`${design.title} - ${design.categoryLabel} mehndi design by Aayesha in Bangalore`}
+          alt={`${design.title} - ${design.categoryLabel} mehndi design by Aayesha${locationText}`}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           priority={priority}
@@ -73,6 +76,7 @@ export function DesignCard({ design, priority = false }: DesignCardProps) {
 
           <WhatsAppButton
             message={whatsappInquiryMessage}
+            phoneRaw={phoneRaw}
             label="Inquire Design"
             size="sm"
             variant="whatsapp"

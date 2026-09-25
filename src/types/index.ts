@@ -91,6 +91,19 @@ export interface SiteContactConfig {
   operatingHours: string;
 }
 
+import type {
+  SiteLocationConfig,
+  HeroConfig,
+  SectionToggles,
+  SocialLinkItem,
+  NavigationItem,
+  FooterConfig,
+  PromoBarConfig,
+  SeoConfig,
+} from './settings';
+
+export * from './settings';
+
 export interface SiteConfig {
   name: string;
   tagline: string;
@@ -98,4 +111,13 @@ export interface SiteConfig {
   url: string;
   contact: SiteContactConfig;
   navLinks: { name: string; href: string }[];
+  location?: SiteLocationConfig;
+  hero?: HeroConfig;
+  sections?: SectionToggles;
+  socialLinks?: SocialLinkItem[];
+  navigation?: NavigationItem[];
+  footer?: FooterConfig;
+  promo?: PromoBarConfig;
+  seo?: SeoConfig;
+  maintenanceMode?: boolean;
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { SiteConfig, ServicePackage, Testimonial } from '@/types';
 import { getCanonicalUrl } from '@/config/site';
+import { getLocationTokens } from '@/lib/settings/location';
 
 /**
  * Renders a script tag with JSON-LD structured data.
@@ -39,32 +40,38 @@ export function generateLocalBusinessSchema(
   testimonials?: Testimonial[]
 ) {
   const baseUrl = getCanonicalUrl();
+  const tokens = getLocationTokens(settings);
 
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'ProfessionalService',
     '@id': `${baseUrl}/#localbusiness`,
     name: settings.name,
-    alternateName: 'Henna by Aayesha Bangalore',
+    alternateName: `${settings.name} ${tokens.city}`,
     url: baseUrl,
     image: `${baseUrl}/images/hero-bride.jpg`,
     description: settings.description,
     priceRange: '₹₹',
     address: {
       '@type': 'PostalAddress',
-      addressLocality: 'Bangalore',
-      addressRegion: 'Karnataka',
-      addressCountry: 'IN',
+      streetAddress: tokens.address || undefined,
+      addressLocality: tokens.city,
+      addressRegion: tokens.state,
+      addressCountry: tokens.country,
     },
     areaServed: [
       {
         '@type': 'City',
-        name: 'Bangalore',
+        name: tokens.city,
       },
-      {
-        '@type': 'City',
-        name: 'Bengaluru',
-      },
+      ...(tokens.altCity && tokens.altCity !== tokens.city
+        ? [
+            {
+              '@type': 'City',
+              name: tokens.altCity,
+            },
+          ]
+        : []),
     ],
     knowsAbout: [
       'Bridal Mehndi',
@@ -74,6 +81,10 @@ export function generateLocalBusinessSchema(
       'Organic Henna',
     ],
   };
+
+  if (tokens.operatingHours) {
+    schema.openingHours = tokens.operatingHours;
+  }
 
   // Only include phone/WhatsApp if provided
   if (settings.contact?.whatsappDisplayNumber) {
@@ -90,6 +101,11 @@ export function generateLocalBusinessSchema(
   if (settings.contact?.instagramUrl) {
     sameAs.push(settings.contact.instagramUrl);
   }
+  if (settings.socialLinks) {
+    settings.socialLinks
+      .filter((s) => s.enabled && s.url && !sameAs.includes(s.url))
+      .forEach((s) => sameAs.push(s.url));
+  }
   if (sameAs.length > 0) {
     schema.sameAs = sameAs;
   }
@@ -102,25 +118,24 @@ export function generateLocalBusinessSchema(
         '@type': 'Person',
         name: t.clientName,
       },
-      reviewBody: t.quote,
       reviewRating: {
         '@type': 'Rating',
-        ratingValue: t.rating || 5,
-        bestRating: 5,
-        worstRating: 1,
+        ratingValue: t.rating.toString(),
+        bestRating: '5',
       },
+      reviewBody: t.quote,
     }));
 
-    const avgRating = (
-      testimonials.reduce((acc, t) => acc + (t.rating || 5), 0) / testimonials.length
+    const averageRating = (
+      testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length
     ).toFixed(1);
 
     schema.aggregateRating = {
       '@type': 'AggregateRating',
-      ratingValue: avgRating,
-      reviewCount: testimonials.length,
-      bestRating: 5,
-      worstRating: 1,
+      ratingValue: averageRating,
+      reviewCount: testimonials.length.toString(),
+      bestRating: '5',
+      worstRating: '1',
     };
   }
 
@@ -148,6 +163,8 @@ export function generateBreadcrumbSchema(items: { name: string; path: string }[]
  */
 export function generateServiceSchema(service: ServicePackage, settings: SiteConfig) {
   const baseUrl = getCanonicalUrl();
+  const tokens = getLocationTokens(settings);
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Service',
@@ -160,8 +177,8 @@ export function generateServiceSchema(service: ServicePackage, settings: SiteCon
     },
     areaServed: {
       '@type': 'City',
-      name: 'Bangalore',
-      alternateName: 'Bengaluru',
+      name: tokens.city,
+      alternateName: tokens.altCity,
     },
     serviceType: 'Mehndi & Bridal Henna',
     termsOfService: `${baseUrl}/terms`,

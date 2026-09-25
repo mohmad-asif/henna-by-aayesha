@@ -11,16 +11,26 @@ export interface CTASectionProps {
   phoneRaw?: string;
   emailAddress?: string;
   showEmail?: boolean;
+  city?: string;
+  serviceAvailability?: string;
 }
 
 export function CTASection({
-  title = 'Ready for Timeless Bridal Mehndi in Bangalore?',
-  description = 'Book your personalized appointment directly on WhatsApp with Aayesha. Share your event date, location in Bangalore, and design preferences for immediate availability.',
+  title,
+  description,
   customMessage,
   phoneRaw,
   emailAddress,
   showEmail = true,
+  city = 'Bengaluru',
+  serviceAvailability,
 }: CTASectionProps) {
+  const displayTitle = title || `Ready for Timeless Bridal Mehndi in ${city}?`;
+  const displayDescription =
+    description ||
+    `Book your personalized appointment directly on WhatsApp with Aayesha. Share your event date, location in ${city}, and design preferences for immediate availability.`;
+  const displayBadge = serviceAvailability || `Available in ${city} Only`;
+
   return (
     <section className="relative overflow-hidden py-16 sm:py-24 bg-[#FAF3EE] border-y border-[#EADFD3]">
       {/* Decorative background motifs */}
@@ -29,15 +39,15 @@ export function CTASection({
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="inline-flex items-center justify-center mb-5">
-          <LocationBadge label="Available in Bangalore / Bengaluru Only" variant="accent" size="md" />
+          <LocationBadge label={displayBadge} variant="accent" size="md" />
         </div>
 
         <h2 className="font-serif-heading text-3xl sm:text-4xl md:text-5xl font-semibold text-[#261B16] tracking-tight max-w-3xl mx-auto leading-tight">
-          {title}
+          {displayTitle}
         </h2>
 
         <p className="mt-4 text-base sm:text-lg text-[#58463D] max-w-2xl mx-auto leading-relaxed">
-          {description}
+          {displayDescription}
         </p>
 
         {/* Badges row */}

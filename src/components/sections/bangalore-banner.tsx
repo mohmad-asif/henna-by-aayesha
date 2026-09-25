@@ -3,23 +3,54 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { MapPinIcon, CheckCircleIcon } from '@/components/ui/icons';
 import { WhatsAppButton } from '@/components/ui/whatsapp-button';
 import { LocationBadge } from '@/components/ui/location-badge';
+import { SiteConfig } from '@/types';
+import { getLocationTokens } from '@/lib/settings/location';
 
-const bangaloreAreas = [
+const defaultBangaloreAreas = [
+  'Bellandur',
+  'Kadubeesanahalli',
+  'Marathahalli',
+  'Doddakannelli',
+  'Sarjapur Road',
+  'HSR Layout',
+  'Haralur',
+  'Carmelaram',
+  'Kundalahalli',
+  'Brookefield',
+  'Varthur',
   'Indiranagar',
   'Koramangala',
-  'Whitefield',
-  'Jayanagar',
-  'Sadashivanagar',
-  'HSR Layout',
-  'Malleshwaram',
-  'Hebbal & North Bangalore',
   'JP Nagar',
   'Electronic City',
-  'Richmond Town / CBD',
   'Yelahanka',
 ];
 
-export function BangaloreBanner({ phoneRaw }: { phoneRaw?: string }) {
+export function BangaloreBanner({
+  settings,
+  phoneRaw,
+}: {
+  settings?: SiteConfig;
+  phoneRaw?: string;
+}) {
+  const tokens = getLocationTokens(settings);
+  const city = tokens.city;
+  const isBengaluru =
+    city.toLowerCase().includes('bengaluru') || city.toLowerCase().includes('bangalore');
+
+  const coverageAreas = isBengaluru
+    ? defaultBangaloreAreas
+    : [
+        'Direct Doorstep Visits',
+        'Private Residences',
+        'Hotel Suites & Luxury Resorts',
+        'Wedding Banquet Halls',
+        `${city} City Center`,
+        `${city} Metropolitan Area`,
+        'Destination Events',
+      ];
+
+  const effectivePhoneRaw = phoneRaw || settings?.contact?.whatsappPhoneRaw;
+
   return (
     <section className="py-16 sm:py-24 bg-[#F9F5EA] border-y border-[#E9DFCE] relative overflow-hidden">
       {/* Decorative backdrop */}
@@ -29,7 +60,7 @@ export function BangaloreBanner({ phoneRaw }: { phoneRaw?: string }) {
           <div className="lg:col-span-7">
             <div className="mb-4">
               <LocationBadge
-                label="Bangalore / Bengaluru Service Area Only"
+                label={tokens.serviceAvailability || `${city} Service Area Only`}
                 variant="accent"
                 size="md"
               />
@@ -37,13 +68,15 @@ export function BangaloreBanner({ phoneRaw }: { phoneRaw?: string }) {
 
             <SectionHeading
               align="left"
-              title="Looking for a Mehndi Artist in Bangalore?"
-              description="To ensure the highest standard of personalized care, unhurried precision, and on-time arrival, Aayesha’s on-location mehndi services are dedicated exclusively to Bangalore / Bengaluru city limits."
+              title={`Looking for a Mehndi Artist in ${city}?`}
+              description={`To ensure the highest standard of personalized care, unhurried precision, and on-time arrival, Aayesha’s on-location mehndi services are dedicated to ${tokens.serviceArea}.`}
               titleClassName="text-3xl sm:text-4xl"
             />
 
             <div className="mt-6 p-4 rounded-xl bg-white/70 border border-[#E6DBCB] text-xs sm:text-sm text-[#4E2714] leading-relaxed">
-              <strong className="font-semibold text-[#B95945]">Please Note:</strong> Mehndi services are available exclusively in Bangalore / Bengaluru. Direct on-location artist travel across all zones in Bengaluru.
+              <strong className="font-semibold text-[#B95945]">Please Note:</strong>{' '}
+              Mehndi services are available in {city}
+              {tokens.altCity && tokens.altCity !== city ? ` / ${tokens.altCity}` : ''}. Direct on-location artist travel across {city} and surrounding areas.
             </div>
 
             {/* Neighborhoods tags */}
@@ -52,7 +85,7 @@ export function BangaloreBanner({ phoneRaw }: { phoneRaw?: string }) {
                 Key Neighborhoods & Venues Served (Citywide Coverage)
               </h3>
               <div className="flex flex-wrap gap-2">
-                {bangaloreAreas.map((area, idx) => (
+                {coverageAreas.map((area, idx) => (
                   <span
                     key={idx}
                     className="inline-flex items-center gap-1.5 text-xs bg-white px-3 py-1.5 rounded-full border border-[#DFD3C2] text-[#4E2714] shadow-2xs font-medium"
@@ -93,11 +126,12 @@ export function BangaloreBanner({ phoneRaw }: { phoneRaw?: string }) {
 
               <div className="mt-8 pt-5 border-t border-[#F5ECE4]">
                 <WhatsAppButton
-                  message="Hi Aayesha, I would like to book a mehndi appointment in Bangalore. Please share your availability and details."
-                  label="Book Appointment on WhatsApp"
-                  phoneRaw={phoneRaw}
+                  message={`Hi Aayesha, I would like to book a mehndi appointment in ${city}. Please share your availability and details.`}
+                  label="Check Dates on WhatsApp"
                   variant="whatsapp"
-                  fullWidth
+                  size="lg"
+                  className="w-full justify-center"
+                  phoneRaw={effectivePhoneRaw}
                 />
               </div>
             </div>

@@ -1,44 +1,61 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { siteConfig } from '@/config/site';
+import React, { useState, useEffect, useMemo } from 'react';
+import { normalizeWhatsAppPhone, normalizeInstagram } from '@/config/site';
 import { DbSiteSettings } from '@/types/database';
+import { SiteLocationConfig } from '@/types';
+import { DEFAULT_LOCATION } from '@/lib/settings/location';
 
 export default function AdminSettingsPage() {
   const [formData, setFormData] = useState<DbSiteSettings>({
     id: 1,
-    business_name: siteConfig.name,
-    tagline: siteConfig.tagline,
-    whatsapp_number: siteConfig.contact.whatsappDisplayNumber,
-    whatsapp_raw: siteConfig.contact.whatsappPhoneRaw,
-    whatsapp_message: siteConfig.contact.whatsappDefaultMessage,
-    email: siteConfig.contact.email,
-    location: `${siteConfig.contact.city}, ${siteConfig.contact.state}, ${siteConfig.contact.country}`,
-    short_description: siteConfig.description,
-    about_description: 'Over 8 years crafting bridal couture in Bangalore using 100% certified organic Rajasthani henna cones.',
-    instagram_url: siteConfig.contact.instagramUrl,
+    business_name: 'Henna by Aayesha',
+    tagline: 'Exquisite Organic Bridal Mehndi Artistry',
+    whatsapp_number: '+91 98765 43210',
+    whatsapp_raw: '919876543210',
+    whatsapp_message: 'Hi Aayesha, I would like to book a mehndi appointment. Please share your availability and details.',
+    email: 'hello@hennabyaayesha.com',
+    location: 'Bengaluru / Bangalore, Karnataka, India',
+    short_description: 'Premier bridal and bespoke henna artistry using 100% natural, certified organic Rajasthani henna.',
+    about_description: 'Over 8 years crafting bridal couture using 100% certified organic Rajasthani henna cones.',
+    instagram_url: 'https://instagram.com/henna_by_aayesha',
     facebook_url: '',
-    website_url: siteConfig.url,
+    website_url: 'https://hennabyaayesha.com',
     primary_cta_text: 'Book Appointment on WhatsApp',
   });
 
+  const [locationData, setLocationData] = useState<SiteLocationConfig>(DEFAULT_LOCATION);
+  const [instagramInput, setInstagramInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Live WhatsApp normalization preview
+  const phonePreview = useMemo(() => {
+    return normalizeWhatsAppPhone(formData.whatsapp_number);
+  }, [formData.whatsapp_number]);
+
+  // Live Instagram normalization preview
+  const instagramPreview = useMemo(() => {
+    return normalizeInstagram(instagramInput);
+  }, [instagramInput]);
+
   useEffect(() => {
     async function loadSettings() {
       try {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('site_settings')
-          .select('*')
-          .eq('id', 1)
-          .maybeSingle();
-
-        if (data && !error) {
-          setFormData(data as DbSiteSettings);
+        const res = await fetch('/api/admin/settings');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.settings) {
+            setFormData(json.settings);
+            if (json.settings.instagram_url) {
+              const norm = normalizeInstagram(json.settings.instagram_url);
+              setInstagramInput(norm.displayHandle || json.settings.instagram_url);
+            }
+          }
+          if (json.extended?.location) {
+            setLocationData({ ...DEFAULT_LOCATION, ...json.extended.location });
+          }
         }
       } catch {
         // Fallback to initial values
@@ -54,12 +71,27 @@ export default function AdminSettingsPage() {
     const { name, value } = e.target;
     setFormData((prev) => {
       const updated = { ...prev, [name]: value };
-      // Auto-compute raw WhatsApp number if display number is typed
       if (name === 'whatsapp_number') {
-        updated.whatsapp_raw = value.replace(/\D/g, '');
+        const norm = normalizeWhatsAppPhone(value);
+        updated.whatsapp_raw = norm.raw;
       }
       return updated;
     });
+  };
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setLocationData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleInstagramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInstagramInput(val);
+    const norm = normalizeInstagram(val);
+    setFormData((prev) => ({
+      ...prev,
+      instagram_url: norm.url,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,41 +99,75 @@ export default function AdminSettingsPage() {
     setSaving(true);
     setStatusMsg(null);
 
-    try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('site_settings')
-        .upsert({
-          id: 1,
-          business_name: formData.business_name,
-          tagline: formData.tagline,
-          whatsapp_number: formData.whatsapp_number,
-          whatsapp_raw: formData.whatsapp_raw || formData.whatsapp_number.replace(/\D/g, ''),
-          whatsapp_message: formData.whatsapp_message,
-          email: formData.email,
-          location: formData.location,
-          short_description: formData.short_description,
-          about_description: formData.about_description,
-          instagram_url: formData.instagram_url,
-          facebook_url: formData.facebook_url,
-          website_url: formData.website_url,
-          primary_cta_text: formData.primary_cta_text,
-          updated_at: new Date().toISOString(),
-        });
+    // Frontend validation
+    if (!phonePreview.isValid || !phonePreview.raw) {
+      setStatusMsg({
+        type: 'error',
+        text: 'Please enter a valid WhatsApp phone number with 7-15 digits (e.g. +91 98765 43210 or 9876543210).',
+      });
+      setSaving(false);
+      return;
+    }
 
-      if (error) {
+    if (instagramInput.trim().length > 0 && (!instagramPreview.isValid || !instagramPreview.handle)) {
+      setStatusMsg({
+        type: 'error',
+        text: 'Invalid Instagram handle. Handle must contain only letters, numbers, periods, and underscores (e.g. @aayesha_mehndi or aayesha_mehndi).',
+      });
+      setSaving(false);
+      return;
+    }
+
+    if (!locationData.city?.trim()) {
+      setStatusMsg({
+        type: 'error',
+        text: 'Primary Service City is required.',
+      });
+      setSaving(false);
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      whatsapp_number: phonePreview.display,
+      whatsapp_raw: phonePreview.raw,
+      instagram_url: instagramPreview.url,
+      location: locationData,
+    };
+
+    try {
+      // Send through centralized Admin API route which handles server-side validation and Next.js cache revalidation
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const resData = await res.json();
+
+      if (!res.ok) {
         setStatusMsg({
           type: 'error',
-          text: `Failed to save settings: ${error.message}. If tables are not yet created in your Supabase project, execute supabase/schema.sql in the Supabase SQL editor.`,
+          text: `Failed to save settings: ${resData.error || 'Server error occurred'}.`,
         });
       } else {
         setStatusMsg({
           type: 'success',
-          text: 'Settings updated successfully! The entire public website will now use these updated contact details.',
+          text: 'Settings and location configuration updated successfully! Public website cache revalidated.',
         });
+        if (resData.settings) {
+          setFormData(resData.settings);
+          if (resData.settings.instagram_url) {
+            const norm = normalizeInstagram(resData.settings.instagram_url);
+            setInstagramInput(norm.displayHandle || resData.settings.instagram_url);
+          }
+        }
+        if (resData.extended?.location) {
+          setLocationData(resData.extended.location);
+        }
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'An error occurred';
+      const msg = err instanceof Error ? err.message : 'An error occurred while saving';
       setStatusMsg({ type: 'error', text: msg });
     } finally {
       setSaving(false);
@@ -121,13 +187,13 @@ export default function AdminSettingsPage() {
       {/* Page Header */}
       <div>
         <span className="text-xs uppercase tracking-wider font-bold text-[#B95945]">
-          Global Configuration
+          Global Configuration • Single Source of Truth
         </span>
         <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
-          Contact & Site Settings
+          Site & Location Settings
         </h1>
         <p className="text-xs sm:text-sm text-[#703D24] mt-1">
-          Updating your WhatsApp number or email here automatically updates all buttons, banners, and links across the entire website.
+          Updating your contact details or service city here immediately updates every CTA, button, card, header, footer, LocalBusiness schema, and AI assistant across the public website.
         </p>
       </div>
 
@@ -144,6 +210,181 @@ export default function AdminSettingsPage() {
       )}
 
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-10 border border-[#EADFD3] shadow-xs space-y-8">
+        {/* Dynamic Location Architecture Section */}
+        <div>
+          <h2 className="font-serif-heading text-xl font-semibold text-[#261B16] pb-3 border-b border-[#F0E5D8]">
+            Dynamic Location & Service Area Settings
+          </h2>
+          <p className="text-xs text-[#703D24] mt-1 mb-4">
+            Zero hardcoded cities. Changing this updates your SEO schema, hero banner, services descriptions, footer, and AI context seamlessly.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label
+                htmlFor="city"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Primary Service City *
+              </label>
+              <input
+                id="city"
+                type="text"
+                name="city"
+                required
+                value={locationData.city}
+                onChange={handleLocationChange}
+                placeholder="e.g. Bengaluru or Dubai"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="altCity"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Alternative City Name (Optional)
+              </label>
+              <input
+                id="altCity"
+                type="text"
+                name="altCity"
+                value={locationData.altCity || ''}
+                onChange={handleLocationChange}
+                placeholder="e.g. Bangalore"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="state"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                State / Region
+              </label>
+              <input
+                id="state"
+                type="text"
+                name="state"
+                value={locationData.state}
+                onChange={handleLocationChange}
+                placeholder="e.g. Karnataka"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="country"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Country
+              </label>
+              <input
+                id="country"
+                type="text"
+                name="country"
+                value={locationData.country}
+                onChange={handleLocationChange}
+                placeholder="e.g. India"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="serviceAreaLabel"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Service Area Description
+              </label>
+              <input
+                id="serviceAreaLabel"
+                type="text"
+                name="serviceAreaLabel"
+                value={locationData.serviceAreaLabel}
+                onChange={handleLocationChange}
+                placeholder="e.g. Serving Bengaluru and nearby areas"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="availability"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Service Availability Banner
+              </label>
+              <input
+                id="availability"
+                type="text"
+                name="availability"
+                value={locationData.availability}
+                onChange={handleLocationChange}
+                placeholder="e.g. Available only in Bengaluru and surrounding zones"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="address"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Business Studio Address
+              </label>
+              <input
+                id="address"
+                type="text"
+                name="address"
+                value={locationData.address || ''}
+                onChange={handleLocationChange}
+                placeholder="e.g. Indiranagar, Bengaluru, Karnataka 560038"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="businessHours"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Business Hours
+              </label>
+              <input
+                id="businessHours"
+                type="text"
+                name="businessHours"
+                value={locationData.businessHours || ''}
+                onChange={handleLocationChange}
+                placeholder="Mon – Sun: 9:00 AM – 8:00 PM"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="googleMapsUrl"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Google Maps URL
+              </label>
+              <input
+                id="googleMapsUrl"
+                type="url"
+                name="googleMapsUrl"
+                value={locationData.googleMapsUrl || ''}
+                onChange={handleLocationChange}
+                placeholder="https://maps.google.com/..."
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Contact Architecture Section */}
         <div>
           <h2 className="font-serif-heading text-xl font-semibold text-[#261B16] pb-3 border-b border-[#F0E5D8]">
@@ -151,12 +392,12 @@ export default function AdminSettingsPage() {
           </h2>
 
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
+            <div className="sm:col-span-2">
               <label
                 htmlFor="whatsapp_number"
                 className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
               >
-                Display WhatsApp Number *
+                WhatsApp Number *
               </label>
               <input
                 id="whatsapp_number"
@@ -165,34 +406,25 @@ export default function AdminSettingsPage() {
                 required
                 value={formData.whatsapp_number}
                 onChange={handleChange}
-                placeholder="+91 12345 67890"
+                placeholder="+91 98765 43210 or 9876543210"
                 className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
               />
-              <span className="text-[11px] text-[#847269] mt-1 block">
-                Shown to visitors on the website.
-              </span>
-            </div>
 
-            <div>
-              <label
-                htmlFor="whatsapp_raw"
-                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
-              >
-                Raw WhatsApp Number (Digits Only) *
-              </label>
-              <input
-                id="whatsapp_raw"
-                type="text"
-                name="whatsapp_raw"
-                required
-                value={formData.whatsapp_raw}
-                onChange={handleChange}
-                placeholder="911234567890"
-                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
-              />
-              <span className="text-[11px] text-[#847269] mt-1 block">
-                Country code + number without plus or spaces (e.g. 919876543210 for wa.me link).
-              </span>
+              {/* Dynamic WhatsApp Normalization Preview */}
+              <div className="mt-2.5 p-3 rounded-xl bg-[#FAF6F0] border border-[#EADBCE] text-xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#847269]">Normalized Display:</span>
+                  <span className="font-bold text-[#4E2714]">
+                    {phonePreview.isValid ? phonePreview.display : '—'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#847269]">Click-to-chat Link:</span>
+                  <span className="font-mono text-[11px] text-[#1EBE5D] truncate max-w-[280px] sm:max-w-none">
+                    {phonePreview.isValid ? `https://wa.me/${phonePreview.raw}` : 'Invalid phone number format'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="sm:col-span-2">
@@ -232,9 +464,6 @@ export default function AdminSettingsPage() {
                 placeholder="hello@hennabyaayesha.com"
                 className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
               />
-              <span className="text-[11px] text-[#847269] mt-1 block">
-                Used in all &quot;Send Email&quot; buttons and mailto links.
-              </span>
             </div>
           </div>
         </div>
@@ -242,7 +471,7 @@ export default function AdminSettingsPage() {
         {/* Business Identity Section */}
         <div>
           <h2 className="font-serif-heading text-xl font-semibold text-[#261B16] pb-3 border-b border-[#F0E5D8]">
-            Business Information
+            Business Identity & Branding
           </h2>
 
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -264,23 +493,6 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="location"
-                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
-              >
-                Location & Coverage
-              </label>
-              <input
-                id="location"
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
               <label
                 htmlFor="tagline"
                 className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
@@ -313,32 +525,84 @@ export default function AdminSettingsPage() {
                 className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
               />
             </div>
+
+            <div>
+              <label
+                htmlFor="logoUrl"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Website Logo URL
+              </label>
+              <input
+                id="logoUrl"
+                type="text"
+                name="logoUrl"
+                value={locationData.logoUrl || ''}
+                onChange={handleLocationChange}
+                placeholder="/images/logo.png"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="faviconUrl"
+                className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
+              >
+                Favicon URL
+              </label>
+              <input
+                id="faviconUrl"
+                type="text"
+                name="faviconUrl"
+                value={locationData.faviconUrl || ''}
+                onChange={handleLocationChange}
+                placeholder="/favicon.ico"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+              />
+            </div>
           </div>
         </div>
 
         {/* Social Links & CTA Section */}
         <div>
           <h2 className="font-serif-heading text-xl font-semibold text-[#261B16] pb-3 border-b border-[#F0E5D8]">
-            Social Links & Button Text
+            Instagram Handle & Booking CTA
           </h2>
 
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label
-                htmlFor="instagram_url"
+                htmlFor="instagram_input"
                 className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1.5"
               >
-                Instagram URL
+                Instagram Handle / Profile
               </label>
               <input
-                id="instagram_url"
-                type="url"
-                name="instagram_url"
-                value={formData.instagram_url || ''}
-                onChange={handleChange}
-                placeholder="https://instagram.com/hennabyaayesha"
+                id="instagram_input"
+                type="text"
+                name="instagram_input"
+                value={instagramInput}
+                onChange={handleInstagramChange}
+                placeholder="@aayesha_mehndi or aayesha_mehndi"
                 className="w-full px-4 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
               />
+
+              {/* Dynamic Instagram Normalization Preview */}
+              <div className="mt-2.5 p-3 rounded-xl bg-[#FAF6F0] border border-[#EADBCE] text-xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#847269]">Visible Display Handle:</span>
+                  <span className="font-bold text-[#E1306C]">
+                    {instagramPreview.isValid ? instagramPreview.displayHandle : '—'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#847269]">Generated Profile URL:</span>
+                  <span className="font-mono text-[11px] text-[#4E2714] truncate max-w-[200px] sm:max-w-none">
+                    {instagramPreview.isValid ? instagramPreview.url : (instagramInput ? 'Invalid handle' : 'Not configured')}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -366,12 +630,12 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-8 py-3 rounded-xl bg-[#4E2714] text-white text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-8 py-3 rounded-xl bg-[#4E2714] text-white text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
           >
             {saving ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                <span>Saving to Supabase...</span>
+                <span>Saving & Revalidating...</span>
               </>
             ) : (
               'Save All Settings'

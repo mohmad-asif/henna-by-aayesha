@@ -83,7 +83,7 @@ export default function AdminLoginPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 shadow-xl rounded-3xl sm:px-10 border border-[#EADFD3]">
           {/* Mode Switcher Tabs */}
-          <div className="flex rounded-xl bg-[#FAF3EE] p-1 mb-6 border border-[#EADBCE]">
+          {/* <div className="flex rounded-xl bg-[#FAF3EE] p-1 mb-6 border border-[#EADBCE]">
             <button
               type="button"
               onClick={() => {
@@ -114,7 +114,7 @@ export default function AdminLoginPage() {
             >
               First Time Setup (Register)
             </button>
-          </div>
+          </div> */}
 
           {errorMsg && (
             <div className="mb-5 p-3.5 rounded-xl bg-[#FDF2F2] border border-[#F8D7DA] text-xs text-[#9B2C2C] leading-relaxed">

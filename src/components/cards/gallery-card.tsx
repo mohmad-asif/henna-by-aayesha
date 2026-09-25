@@ -6,16 +6,31 @@ import { GalleryItem } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { WhatsAppIcon } from '@/components/ui/icons';
 import { buildWhatsAppUrl } from '@/config/site';
+import { useSiteSettings } from '@/components/providers/site-settings-provider';
 
 export interface GalleryCardProps {
   item: GalleryItem;
   priority?: boolean;
+  phoneRaw?: string;
   onClick?: () => void;
 }
 
-export function GalleryCard({ item, priority = false, onClick }: GalleryCardProps) {
+export function GalleryCard({
+  item,
+  priority = false,
+  phoneRaw,
+  onClick,
+}: GalleryCardProps) {
+  const contextSettings = useSiteSettings();
+  const effectivePhoneRaw =
+    phoneRaw !== undefined
+      ? phoneRaw
+      : contextSettings?.contact.whatsappPhoneRaw;
+  const city = contextSettings?.location?.city || contextSettings?.contact.city;
+  const locationText = city ? ` in ${city}` : '';
   const whatsappUrl = buildWhatsAppUrl(
-    `Hi Aayesha, I saw the photo "${item.title}" in your gallery and would like to ask about a similar mehndi design in Bangalore.`
+    `Hi Aayesha, I saw the photo "${item.title}" in your gallery and would like to ask about a similar mehndi design${locationText}.`,
+    effectivePhoneRaw
   );
 
   return (
@@ -37,7 +52,7 @@ export function GalleryCard({ item, priority = false, onClick }: GalleryCardProp
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
           src={item.image}
-          alt={`${item.title} - ${item.categoryLabel} mehndi art in Bangalore by Aayesha`}
+          alt={`${item.title} - ${item.categoryLabel} mehndi art${locationText} by Aayesha`}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           priority={priority}
@@ -65,16 +80,18 @@ export function GalleryCard({ item, priority = false, onClick }: GalleryCardProp
             <span className="text-[11px] text-[#F5ECE4] underline underline-offset-2">
               Click to view large
             </span>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#25D366] text-white px-3 py-1.5 rounded-full hover:bg-[#1EBE5D] transition-colors shadow-xs"
-            >
-              <WhatsAppIcon size={14} />
-              <span>Inquire</span>
-            </a>
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#25D366] text-white px-3 py-1.5 rounded-full hover:bg-[#1EBE5D] transition-colors shadow-xs"
+              >
+                <WhatsAppIcon size={14} />
+                <span>Inquire</span>
+              </a>
+            )}
           </div>
         </div>
       </div>
