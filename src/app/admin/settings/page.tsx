@@ -81,7 +81,13 @@ export default function AdminSettingsPage() {
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setLocationData((prev) => ({ ...prev, [name]: value }));
+    setLocationData((prev) => {
+      const updated = { ...prev, [name]: value };
+      if (name === 'businessHours') {
+        updated.operatingHours = value;
+      }
+      return updated;
+    });
   };
 
   const handleInstagramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +96,7 @@ export default function AdminSettingsPage() {
     const norm = normalizeInstagram(val);
     setFormData((prev) => ({
       ...prev,
-      instagram_url: norm.url,
+      instagram_url: norm.url || '',
     }));
   };
 
@@ -127,12 +133,19 @@ export default function AdminSettingsPage() {
       return;
     }
 
+    const timingValue = locationData.businessHours?.trim() || locationData.operatingHours?.trim() || '';
+    const syncedLocation: SiteLocationConfig = {
+      ...locationData,
+      businessHours: timingValue,
+      operatingHours: timingValue,
+    };
+
     const payload = {
       ...formData,
       whatsapp_number: phonePreview.display,
       whatsapp_raw: phonePreview.raw,
-      instagram_url: instagramPreview.url,
-      location: locationData,
+      instagram_url: instagramInput.trim() ? instagramPreview.url : '',
+      location: syncedLocation,
     };
 
     try {
@@ -146,9 +159,10 @@ export default function AdminSettingsPage() {
       const resData = await res.json();
 
       if (!res.ok) {
+        console.error('[Admin Settings UI] Save error response:', resData);
         setStatusMsg({
           type: 'error',
-          text: `Failed to save settings: ${resData.error || 'Server error occurred'}.`,
+          text: `Failed to save settings: ${resData.error || 'Unable to update settings. Please try again.'}`,
         });
       } else {
         setStatusMsg({
@@ -160,15 +174,23 @@ export default function AdminSettingsPage() {
           if (resData.settings.instagram_url) {
             const norm = normalizeInstagram(resData.settings.instagram_url);
             setInstagramInput(norm.displayHandle || resData.settings.instagram_url);
+          } else {
+            setInstagramInput('');
           }
         }
         if (resData.extended?.location) {
-          setLocationData(resData.extended.location);
+          setLocationData({
+            ...DEFAULT_LOCATION,
+            ...resData.extended.location,
+            businessHours: resData.extended.location.businessHours || resData.extended.location.operatingHours || '',
+            operatingHours: resData.extended.location.businessHours || resData.extended.location.operatingHours || '',
+          });
         }
       }
     } catch (err: unknown) {
+      console.error('[Admin Settings UI] Unexpected error:', err);
       const msg = err instanceof Error ? err.message : 'An error occurred while saving';
-      setStatusMsg({ type: 'error', text: msg });
+      setStatusMsg({ type: 'error', text: `Failed to save settings: ${msg}` });
     } finally {
       setSaving(false);
     }

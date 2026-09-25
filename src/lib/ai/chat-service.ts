@@ -5,6 +5,8 @@ import {
   AiMessage,
   AiConversationDetail,
   ConversationsListResponse,
+  UserProfileDetails,
+  UserIpRecord,
 } from '@/types/ai-chat';
 import type { ChatAction } from '@/lib/ai/types';
 import type { RecommendedDesign } from '@/lib/ai/design/types';
@@ -426,9 +428,217 @@ export async function getAdminConversationDetail(
     });
   }
 
+  // Gather complete User Profile & Tracking Details
+  const userId = conv.user_id || null;
+  const visitorId = conv.visitor_id || null;
+
+  // 1. Fetch user profile if user_id is present
+  let profile: Record<string, unknown> | null = null;
+  if (userId) {
+    const { data: profileData } = await supabase
+      .from('admin_profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    if (profileData) {
+      profile = profileData;
+    }
+  }
+
+  // 2. Fetch visitor tracking record if visitor_id is present
+  let visitor: Record<string, unknown> | null = null;
+  let sessions: Array<Record<string, unknown>> = [];
+  if (visitorId) {
+    const [visitorRes, sessionsRes] = await Promise.all([
+      supabase.from('visitors').select('*').eq('visitor_id', visitorId).maybeSingle(),
+      supabase
+        .from('visitor_sessions')
+        .select('*')
+        .eq('visitor_id', visitorId)
+        .order('last_active_at', { ascending: false })
+        .limit(50),
+    ]);
+    if (visitorRes.data) visitor = visitorRes.data;
+    if (sessionsRes.data) sessions = sessionsRes.data;
+  }
+
+  // 3. Compute aggregate AI stats for this user or visitor
+  let relatedConvsQuery = supabase
+    .from('ai_conversations')
+    .select('id, last_message_at, created_at');
+
+  if (userId) {
+    relatedConvsQuery = relatedConvsQuery.eq('user_id', userId);
+  } else if (visitorId) {
+    relatedConvsQuery = relatedConvsQuery.eq('visitor_id', visitorId);
+  } else {
+    relatedConvsQuery = relatedConvsQuery.eq('id', conversationId);
+  }
+
+  const { data: relatedConvs } = await relatedConvsQuery;
+  const allRelatedConvs = relatedConvs && relatedConvs.length > 0 ? relatedConvs : [conv];
+  const totalAiConvs = allRelatedConvs.length;
+
+  let latestAiConvAt: string | null = null;
+  for (const rc of allRelatedConvs) {
+    const t = (rc.last_message_at as string) || (rc.created_at as string);
+    if (!latestAiConvAt || (t && new Date(t) > new Date(latestAiConvAt))) {
+      latestAiConvAt = t;
+    }
+  }
+
+  const relatedConvIds = allRelatedConvs.map((c) => c.id);
+  let totalAiMessages = messages?.length || 0;
+  if (relatedConvIds.length > 1) {
+    const { count: msgCount } = await supabase
+      .from('ai_messages')
+      .select('*', { count: 'exact', head: true })
+      .in('conversation_id', relatedConvIds);
+    if (typeof msgCount === 'number') {
+      totalAiMessages = msgCount;
+    }
+  }
+
+  // 4. Extract and Deduplicate IP Addresses to build IP History
+  const ipMap = new Map<string, UserIpRecord>();
+
+  if (sessions && sessions.length > 0) {
+    for (const s of sessions) {
+      const ip = (s.ip_address as string)?.trim();
+      if (!ip || ip.toLowerCase() === 'unknown' || ip === 'null') continue;
+
+      const existing = ipMap.get(ip);
+      const sessionStarted = (s.started_at as string) || null;
+      const sessionActive = (s.last_active_at as string) || sessionStarted;
+      const browser = s.browser && s.browser !== 'Unknown' ? (s.browser as string) : null;
+      const os = s.os && s.os !== 'Unknown' ? (s.os as string) : null;
+      const deviceType = (s.device_type as string) || null;
+
+      if (!existing) {
+        ipMap.set(ip, {
+          ip,
+          first_seen: sessionStarted,
+          last_seen: sessionActive,
+          session_count: 1,
+          browser,
+          os,
+          device_type: deviceType,
+        });
+      } else {
+        existing.session_count = (existing.session_count || 1) + 1;
+        if (sessionStarted && (!existing.first_seen || new Date(sessionStarted) < new Date(existing.first_seen))) {
+          existing.first_seen = sessionStarted;
+        }
+        if (sessionActive && (!existing.last_seen || new Date(sessionActive) > new Date(existing.last_seen))) {
+          existing.last_seen = sessionActive;
+        }
+        if (!existing.browser && browser) existing.browser = browser;
+        if (!existing.os && os) existing.os = os;
+        if (!existing.device_type && deviceType) existing.device_type = deviceType;
+      }
+    }
+  }
+
+  const visitorIp = (visitor?.ip_address as string)?.trim();
+  if (visitorIp && visitorIp.toLowerCase() !== 'unknown' && visitorIp !== 'null') {
+    const existing = ipMap.get(visitorIp);
+    const firstSeen = (visitor?.first_visit_at as string) || null;
+    const lastSeen = (visitor?.last_active_at as string) || (visitor?.last_visit_at as string) || null;
+    const browser = visitor?.browser && visitor.browser !== 'Unknown' ? (visitor.browser as string) : null;
+    const os = visitor?.os && visitor.os !== 'Unknown' ? (visitor.os as string) : null;
+    const deviceType = (visitor?.device_type as string) || null;
+
+    if (!existing) {
+      ipMap.set(visitorIp, {
+        ip: visitorIp,
+        first_seen: firstSeen,
+        last_seen: lastSeen,
+        session_count: Number(visitor?.visit_count) || 1,
+        browser,
+        os,
+        device_type: deviceType,
+      });
+    } else {
+      if (firstSeen && (!existing.first_seen || new Date(firstSeen) < new Date(existing.first_seen))) {
+        existing.first_seen = firstSeen;
+      }
+      if (lastSeen && (!existing.last_seen || new Date(lastSeen) > new Date(existing.last_seen))) {
+        existing.last_seen = lastSeen;
+      }
+    }
+  }
+
+  const convIp = (conv.metadata?.ip as string)?.trim();
+  if (convIp && convIp.toLowerCase() !== 'unknown' && convIp !== 'null') {
+    const existing = ipMap.get(convIp);
+    if (!existing) {
+      ipMap.set(convIp, {
+        ip: convIp,
+        first_seen: conv.created_at || null,
+        last_seen: conv.last_message_at || conv.created_at || null,
+        session_count: 1,
+        browser: (conv.metadata?.browser as string) || null,
+        os: (conv.metadata?.os as string) || null,
+        device_type: (conv.metadata?.device_type as string) || null,
+      });
+    }
+  }
+
+  const ipHistory: UserIpRecord[] = Array.from(ipMap.values()).sort((a, b) => {
+    const timeA = a.last_seen ? new Date(a.last_seen).getTime() : 0;
+    const timeB = b.last_seen ? new Date(b.last_seen).getTime() : 0;
+    return timeB - timeA;
+  });
+
+  const currentIp = ipHistory[0]?.ip || visitorIp || convIp || null;
+
+  // 5. Construct complete UserProfileDetails adhering strictly to actual database values
+  const userProfile: UserProfileDetails = {
+    user_id: userId,
+    visitor_id: visitorId,
+    is_authenticated: !!userId,
+    avatar_url: (profile?.avatar_url as string) || null,
+    full_name: (profile?.full_name as string) || conv.user_name || null,
+    email: (profile?.email as string) || conv.user_email || null,
+    phone: (profile?.phone as string) || (conv.metadata?.phone as string) || null,
+    username: (profile?.username as string) || (profile?.email ? (profile.email as string).split('@')[0] : null) || null,
+    role: (profile?.role as string) || (userId ? 'Authenticated User' : 'Website Visitor'),
+    created_at: (profile?.created_at as string) || (visitor?.first_visit_at as string) || conv.created_at || null,
+    last_active_at: (visitor?.last_active_at as string) || conv.last_message_at || null,
+    last_sign_in_at: (profile?.last_sign_in_at as string) || null,
+
+    current_ip: currentIp,
+    ip_history: ipHistory,
+
+    country: (visitor?.country as string) || (conv.metadata?.country as string) || null,
+    region: (visitor?.region as string) || (conv.metadata?.region as string) || null,
+    city: (visitor?.city as string) || (conv.metadata?.city as string) || null,
+    location_display: (visitor?.location_display as string) || (conv.metadata?.location_display as string) || null,
+    timezone: (visitor?.timezone as string) || (conv.metadata?.timezone as string) || null,
+
+    device_type: (visitor?.device_type as string) || (conv.metadata?.device_type as string) || null,
+    browser: (visitor?.browser as string) || (conv.metadata?.browser as string) || null,
+    os: (visitor?.os as string) || (conv.metadata?.os as string) || null,
+    screen_size: (visitor?.screen_size as string) || (conv.metadata?.screen_size as string) || null,
+    language: (visitor?.language as string) || (conv.metadata?.language as string) || null,
+    user_agent: (visitor?.user_agent as string) || (conv.metadata?.userAgent as string) || null,
+
+    total_ai_conversations: totalAiConvs,
+    total_ai_messages: totalAiMessages,
+    latest_ai_conversation_at: latestAiConvAt || conv.last_message_at,
+
+    visit_count: typeof visitor?.visit_count === 'number' ? visitor.visit_count : null,
+    page_views_count: typeof visitor?.page_views_count === 'number' ? visitor.page_views_count : null,
+    landing_page: (visitor?.landing_page as string) || null,
+    last_page: (visitor?.last_page as string) || null,
+    initial_referrer: (visitor?.initial_referrer as string) || null,
+    initial_source: (visitor?.initial_source as string) || null,
+  };
+
   return {
     ...(conv as AiConversation),
     messages: (messages as AiMessage[]) || [],
+    user_profile: userProfile,
   };
 }
 

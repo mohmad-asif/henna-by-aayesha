@@ -65,8 +65,19 @@ export async function saveExtendedSiteSettings(
   client?: ReturnType<typeof createServerClient> extends Promise<infer U> ? U : unknown
 ): Promise<ExtendedSiteSettings> {
   const current = await getExtendedSiteSettings();
+
+  // Sync timing fields (businessHours and operatingHours) so updates persist consistently
+  const incomingLocation = partial.location ? { ...partial.location } : undefined;
+  if (incomingLocation) {
+    const hours = incomingLocation.businessHours || incomingLocation.operatingHours;
+    if (hours) {
+      incomingLocation.businessHours = hours;
+      incomingLocation.operatingHours = hours;
+    }
+  }
+
   const merged: ExtendedSiteSettings = {
-    location: { ...current.location, ...(partial.location || {}) },
+    location: { ...current.location, ...(incomingLocation || {}) },
     hero: { ...current.hero, ...(partial.hero || {}) },
     sections: { ...current.sections, ...(partial.sections || {}) },
     socialLinks: partial.socialLinks || current.socialLinks,
@@ -82,7 +93,15 @@ export async function saveExtendedSiteSettings(
 
   const dbClient = await getDb(client);
 
-  const payload = {
+  // Check if document already exists to reuse id and prevent unique constraint violations
+  const { data: existingDoc } = await dbClient
+    .from('knowledge_documents')
+    .select('id')
+    .eq('source_type', EXTENDED_SETTINGS_SOURCE_TYPE)
+    .eq('source_id', EXTENDED_SETTINGS_SOURCE_ID)
+    .maybeSingle();
+
+  const payload: Record<string, unknown> = {
     source_type: EXTENDED_SETTINGS_SOURCE_TYPE,
     source_id: EXTENDED_SETTINGS_SOURCE_ID,
     title: 'Extended Site Configuration',
@@ -93,8 +112,16 @@ export async function saveExtendedSiteSettings(
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await dbClient.from('knowledge_documents').upsert(payload);
+  if (existingDoc?.id) {
+    payload.id = existingDoc.id;
+  }
+
+  const { error } = await dbClient
+    .from('knowledge_documents')
+    .upsert(payload, { onConflict: 'source_type,source_id' });
+
   if (error) {
+    console.error('[ExtendedSettings] Failed to save extended settings:', error);
     throw new Error(`Failed to save extended settings: ${error.message}`);
   }
 
@@ -174,7 +201,14 @@ export async function saveFaq(
 
   const dbClient = await getDb(client);
 
-  const payload = {
+  const { data: existingFaq } = await dbClient
+    .from('knowledge_documents')
+    .select('id')
+    .eq('source_type', 'faq')
+    .eq('source_id', id)
+    .maybeSingle();
+
+  const payload: Record<string, unknown> = {
     source_type: 'faq',
     source_id: id,
     title: question,
@@ -191,7 +225,13 @@ export async function saveFaq(
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await dbClient.from('knowledge_documents').upsert(payload);
+  if (existingFaq?.id) {
+    payload.id = existingFaq.id;
+  }
+
+  const { error } = await dbClient
+    .from('knowledge_documents')
+    .upsert(payload, { onConflict: 'source_type,source_id' });
   if (error) {
     throw new Error(`Failed to save FAQ: ${error.message}`);
   }
@@ -283,7 +323,14 @@ export async function saveWhyChooseUs(
 
   const dbClient = await getDb(client);
 
-  const payload = {
+  const { data: existingWcu } = await dbClient
+    .from('knowledge_documents')
+    .select('id')
+    .eq('source_type', 'why_choose_us')
+    .eq('source_id', id)
+    .maybeSingle();
+
+  const payload: Record<string, unknown> = {
     source_type: 'why_choose_us',
     source_id: id,
     title,
@@ -298,7 +345,13 @@ export async function saveWhyChooseUs(
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await dbClient.from('knowledge_documents').upsert(payload);
+  if (existingWcu?.id) {
+    payload.id = existingWcu.id;
+  }
+
+  const { error } = await dbClient
+    .from('knowledge_documents')
+    .upsert(payload, { onConflict: 'source_type,source_id' });
   if (error) {
     throw new Error(`Failed to save Why Choose Us card: ${error.message}`);
   }

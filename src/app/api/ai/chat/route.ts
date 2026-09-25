@@ -167,17 +167,40 @@ export async function POST(request: NextRequest) {
     // Persist conversation and user message in Supabase
     let activeConversationId: string | null = null;
     try {
+      let authUserId: string | null = null;
+      let authUserEmail: string | null = null;
+      let authUserName: string | null = null;
+      try {
+        const { createClient: createServerSupabase } = await import('@/lib/supabase/server');
+        const supabaseServer = await createServerSupabase();
+        const { data: { user } } = await supabaseServer.auth.getUser();
+        if (user) {
+          authUserId = user.id;
+          authUserEmail = user.email || null;
+          authUserName =
+            (user.user_metadata?.full_name as string) ||
+            (user.user_metadata?.name as string) ||
+            (user.email ? user.email.split('@')[0] : null);
+        }
+      } catch {
+        // Anonymous visitor
+      }
+
+      const userAgent = request.headers.get('user-agent') || undefined;
+
       const { getOrCreateConversation, saveMessage } = await import('@/lib/ai/chat-service');
       const conv = await getOrCreateConversation({
         conversationId,
         visitorId: body.visitorId || null,
         sessionId: body.sessionId || null,
-        userName: body.userName || null,
-        userEmail: body.userEmail || null,
+        userId: authUserId || null,
+        userName: body.userName || authUserName || null,
+        userEmail: body.userEmail || authUserEmail || null,
         initialMessage: lastUserMessage,
         metadata: {
           ...(body.clientInfo || {}),
           ip,
+          userAgent,
         },
       });
 

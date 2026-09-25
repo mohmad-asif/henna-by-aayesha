@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { AiConversation, AiMessage, AiConversationDetail } from '@/types/ai-chat';
 import { WhatsAppIcon } from '@/components/ui/icons';
+import { UserProfilePanel } from '@/components/admin/user-profile-panel';
 
 export default function AdminAiConversationsPage() {
   // List state
@@ -28,8 +29,9 @@ export default function AdminAiConversationsPage() {
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
-  // Mobile navigation
+  // Mobile & panel navigation
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState<boolean>(false);
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(true);
 
   // Actions state
   const [actionLoading, setActionLoading] = useState<boolean>(false);
@@ -125,6 +127,7 @@ export default function AdminAiConversationsPage() {
   const handleSelectConversation = (conv: AiConversation) => {
     setSelectedConversationId(conv.id);
     setIsMobileDetailOpen(true);
+    setIsProfileOpen(true);
     fetchDetail(conv.id, true);
   };
 
@@ -301,7 +304,7 @@ export default function AdminAiConversationsPage() {
         {/* LEFT SIDEBAR: Conversation List                          */}
         {/* ======================================================== */}
         <aside
-          className={`w-full lg:w-96 flex-shrink-0 flex flex-col bg-white border-r border-[#E5D9CE] z-20 transition-all duration-200 ${
+          className={`w-full lg:w-72 xl:w-80 flex-shrink-0 flex flex-col bg-white border-r border-[#E5D9CE] z-20 transition-all duration-200 ${
             isMobileDetailOpen ? 'hidden lg:flex' : 'flex'
           }`}
         >
@@ -522,10 +525,17 @@ export default function AdminAiConversationsPage() {
               {/* Chat Thread Header */}
               <div className="bg-white border-b border-[#E5D9CE] px-4 py-3 flex items-center justify-between flex-shrink-0 z-10 shadow-xs">
                 {/* User / Visitor Identity */}
-                <div className="flex items-center gap-3 min-w-0">
+                <div
+                  onClick={() => setIsProfileOpen(true)}
+                  className="flex items-center gap-3 min-w-0 cursor-pointer group"
+                  title="Click to view full user profile & tracking details"
+                >
                   {/* Mobile Back Button */}
                   <button
-                    onClick={() => setIsMobileDetailOpen(false)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsMobileDetailOpen(false);
+                    }}
                     className="lg:hidden p-1.5 rounded-lg border border-[#E5D9CE] text-[#4E2714] hover:bg-[#F7F4EF] mr-1"
                     title="Back to conversation list"
                   >
@@ -533,7 +543,7 @@ export default function AdminAiConversationsPage() {
                   </button>
 
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-[#4E2714] text-[#C29B4D] flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs">
+                  <div className="w-10 h-10 rounded-full bg-[#4E2714] text-[#C29B4D] flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     {(
                       selectedDetail.user_name ||
                       selectedDetail.user_email ||
@@ -545,7 +555,7 @@ export default function AdminAiConversationsPage() {
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <h2 className="font-serif-heading font-bold text-sm lg:text-base text-[#261B16] truncate">
+                      <h2 className="font-serif-heading font-bold text-sm lg:text-base text-[#261B16] truncate group-hover:text-[#B95945] transition-colors">
                         {selectedDetail.user_name ||
                           selectedDetail.user_email ||
                           (selectedDetail.visitor_id
@@ -587,6 +597,22 @@ export default function AdminAiConversationsPage() {
 
                 {/* Header Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* User Profile Toggle Button */}
+                  <button
+                    onClick={() => setIsProfileOpen((v) => !v)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+                      isProfileOpen
+                        ? 'border-[#B95945] bg-[#FAF3EE] text-[#B95945]'
+                        : 'border-[#E5D9CE] bg-white text-[#4E2714] hover:bg-[#F7F4EF]'
+                    }`}
+                    title={isProfileOpen ? 'Hide User Profile' : 'View User Profile Details'}
+                  >
+                    <span>👤</span>
+                    <span className="hidden sm:inline">
+                      {isProfileOpen ? 'Profile Details' : 'View Profile'}
+                    </span>
+                  </button>
+
                   {/* Status Dropdown */}
                   <select
                     value={selectedDetail.status}
@@ -818,6 +844,18 @@ export default function AdminAiConversationsPage() {
             </div>
           )}
         </section>
+
+        {/* ======================================================== */}
+        {/* RIGHT PANEL: Complete User Profile & Telemetry View     */}
+        {/* ======================================================== */}
+        {selectedConversationId && selectedDetail && (
+          <UserProfilePanel
+            profile={selectedDetail.user_profile}
+            conversation={selectedDetail}
+            isOpen={isProfileOpen}
+            onClose={() => setIsProfileOpen(false)}
+          />
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}

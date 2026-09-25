@@ -30,7 +30,7 @@ export function getLocationTokens(settings?: SiteConfig | { location?: Partial<S
   const serviceArea = loc?.serviceArea?.trim() || loc?.serviceAreaLabel?.trim() || `Serving ${city} and nearby areas`;
   const serviceAvailability =
     loc?.serviceAvailability?.trim() || loc?.availability?.trim() || `Accepting Mehndi Bookings across ${city} • WhatsApp Only`;
-  const operatingHours = loc?.operatingHours?.trim() || loc?.businessHours?.trim() || DEFAULT_LOCATION.operatingHours;
+  const operatingHours = loc?.businessHours?.trim() || loc?.operatingHours?.trim() || DEFAULT_LOCATION.operatingHours;
 
   return {
     city,
