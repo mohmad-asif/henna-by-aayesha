@@ -357,6 +357,19 @@ export default function AdminDashboardPage() {
               Providers, knowledge base & RAG settings
             </p>
           </Link>
+
+          <Link
+            href="/admin/ai-conversations"
+            className="p-4 rounded-2xl bg-[#FAF3EE] hover:bg-[#F5ECE4] border border-[#EADBCE] transition-all group"
+          >
+            <span className="text-xl">💬</span>
+            <h3 className="font-semibold text-sm text-[#4E2714] mt-2 group-hover:text-[#B95945]">
+              AI Chat History
+            </h3>
+            <p className="text-xs text-[#847269] mt-1">
+              Browse real-time conversations & user queries
+            </p>
+          </Link>
         </div>
       </div>
 

@@ -91,11 +91,10 @@ export default function AdminLoginPage() {
                 setErrorMsg(null);
                 setSuccessMsg(null);
               }}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
-                mode === 'signin'
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${mode === 'signin'
                   ? 'bg-white text-[#4E2714] shadow-xs'
                   : 'text-[#847269] hover:text-[#261B16]'
-              }`}
+                }`}
             >
               Sign In
             </button>
@@ -106,11 +105,10 @@ export default function AdminLoginPage() {
                 setErrorMsg(null);
                 setSuccessMsg(null);
               }}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
-                mode === 'signup'
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${mode === 'signup'
                   ? 'bg-white text-[#4E2714] shadow-xs'
                   : 'text-[#847269] hover:text-[#261B16]'
-              }`}
+                }`}
             >
               First Time Setup (Register)
             </button>
@@ -186,9 +184,6 @@ export default function AdminLoginPage() {
 
           {/* Quick Guidance Box */}
           <div className="mt-6 pt-5 border-t border-[#F0E5D8] text-xs text-[#847269] space-y-2">
-            <p>
-              🔒 <strong>Secure Supabase Auth:</strong> Admin accounts are authenticated through your Supabase project.
-            </p>
             <p>
               Return to{' '}
               <Link href="/" className="text-[#B95945] font-semibold hover:underline">

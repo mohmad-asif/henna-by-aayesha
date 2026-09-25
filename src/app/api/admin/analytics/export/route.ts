@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const startIso = start.toISOString();
     const endIso = end.toISOString();
 
-    const supabase = await getAdminSupabaseClient();
+    const supabase = auth.client;
     let csvContent = '';
     const filename = `henna_analytics_${type}_${new Date().toISOString().split('T')[0]}.csv`;
 
@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
 
       const headers = [
         'Visitor ID',
+        'IP Address',
         'First Visit',
         'Last Active',
         'Visit Count',
@@ -60,6 +61,7 @@ export async function GET(request: NextRequest) {
       (visitors || []).forEach((v) => {
         const row = [
           escapeCsvField(v.visitor_id),
+          escapeCsvField(v.ip_address || ''),
           escapeCsvField(v.first_visit_at),
           escapeCsvField(v.last_active_at),
           v.visit_count,

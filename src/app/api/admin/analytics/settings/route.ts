@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = await getAdminSupabaseClient();
+    const supabase = auth.client;
     const { data: settings } = await supabase
       .from('analytics_settings')
       .select('*')
@@ -37,12 +37,12 @@ export async function POST(request: NextRequest) {
     // 1. Manual Cleanup Trigger
     if (body.action === 'cleanup') {
       const days = body.daysToKeep ? parseInt(body.daysToKeep, 10) : undefined;
-      const stats = await runRetentionCleanup(days);
+      const stats = await runRetentionCleanup(days, auth.client);
       return NextResponse.json({ success: true, cleanupStats: stats });
     }
 
     // 2. Settings Update
-    const supabase = await getAdminSupabaseClient();
+    const supabase = auth.client;
     const updatePayload: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };

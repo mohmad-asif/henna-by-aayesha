@@ -257,6 +257,7 @@ export default function VisitorsListPage() {
               <thead className="bg-[#FAF6F0] text-[#703D24] uppercase text-[10px] tracking-wider font-semibold border-b border-[#EADFD3]">
                 <tr>
                   <th className="py-3.5 px-4">Visitor ID</th>
+                  <th className="py-3.5 px-4">IP Address</th>
                   <th className="py-3.5 px-4">First Visit</th>
                   <th className="py-3.5 px-4">Last Activity</th>
                   <th className="py-3.5 px-4">Visits</th>
@@ -276,6 +277,17 @@ export default function VisitorsListPage() {
                       <span title={v.visitor_id}>
                         {v.visitor_id.substring(0, 8)}...
                       </span>
+                    </td>
+
+                    {/* IP Address */}
+                    <td className="py-3 px-4 text-[#261B16]">
+                      {v.ip_address ? (
+                        <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-[#FAF3EE] text-[#4E2714] border border-[#EADBCE] inline-block font-medium">
+                          {v.ip_address}
+                        </span>
+                      ) : (
+                        <span className="text-[#A39184] italic">—</span>
+                      )}
                     </td>
 
                     {/* First Visit */}

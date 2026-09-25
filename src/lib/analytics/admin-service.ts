@@ -1,4 +1,5 @@
 import { getAdminSupabaseClient } from '@/lib/supabase/service-role';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { AnalyticsOverview, AnalyticsSettings, Visitor, VisitorSession, PageView, VisitorEvent } from '@/types/analytics';
 
 export interface DateFilter {
@@ -38,8 +39,11 @@ export function getDateCutoff(filter: DateFilter): { start: Date; end: Date } {
   return { start, end };
 }
 
-export async function getAnalyticsOverview(filter: DateFilter): Promise<AnalyticsOverview & { settings: AnalyticsSettings }> {
-  const supabase = await getAdminSupabaseClient();
+export async function getAnalyticsOverview(
+  filter: DateFilter,
+  clientOverride?: SupabaseClient
+): Promise<AnalyticsOverview & { settings: AnalyticsSettings }> {
+  const supabase = clientOverride || (await getAdminSupabaseClient());
   const { start, end } = getDateCutoff(filter);
   const startIso = start.toISOString();
   const endIso = end.toISOString();
@@ -303,9 +307,10 @@ export async function getAnalyticsOverview(filter: DateFilter): Promise<Analytic
   };
 }
 
-export async function getLiveVisitors(): Promise<{
+export async function getLiveVisitors(clientOverride?: SupabaseClient): Promise<{
   visitors: Array<{
     visitor_id: string;
+    ip_address?: string | null;
     device_type: string;
     browser: string;
     os: string;
@@ -317,7 +322,7 @@ export async function getLiveVisitors(): Promise<{
   }>;
   totalActive: number;
 }> {
-  const supabase = await getAdminSupabaseClient();
+  const supabase = clientOverride || (await getAdminSupabaseClient());
   const fiveMinutesAgoIso = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
   const { data: activeVisitors } = await supabase
@@ -350,6 +355,7 @@ export async function getLiveVisitors(): Promise<{
     const s = sessionMap.get(v.visitor_id);
     return {
       visitor_id: v.visitor_id,
+      ip_address: v.ip_address || (s ? s.ip_address : null) || null,
       device_type: v.device_type,
       browser: v.browser,
       os: v.os,
@@ -377,13 +383,13 @@ export async function getVisitorsList(options: {
   endDate?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-}): Promise<{
+}, clientOverride?: SupabaseClient): Promise<{
   visitors: Visitor[];
   total: number;
   page: number;
   totalPages: number;
 }> {
-  const supabase = await getAdminSupabaseClient();
+  const supabase = clientOverride || (await getAdminSupabaseClient());
   const page = Math.max(1, options.page || 1);
   const limit = Math.max(1, Math.min(100, options.limit || 20));
   const offset = (page - 1) * limit;
@@ -392,7 +398,7 @@ export async function getVisitorsList(options: {
 
   if (options.search && options.search.trim()) {
     const s = options.search.trim();
-    query = query.or(`visitor_id.ilike.%${s}%,city.ilike.%${s}%,landing_page.ilike.%${s}%,last_page.ilike.%${s}%`);
+    query = query.or(`visitor_id.ilike.%${s}%,ip_address.ilike.%${s}%,city.ilike.%${s}%,landing_page.ilike.%${s}%,last_page.ilike.%${s}%`);
   }
 
   if (options.device && options.device !== 'all') {
@@ -433,13 +439,13 @@ export async function getVisitorsList(options: {
   };
 }
 
-export async function getVisitorDetail(visitorId: string): Promise<{
+export async function getVisitorDetail(visitorId: string, clientOverride?: SupabaseClient): Promise<{
   visitor: Visitor | null;
   sessions: VisitorSession[];
   pageViews: PageView[];
   events: VisitorEvent[];
 }> {
-  const supabase = await getAdminSupabaseClient();
+  const supabase = clientOverride || (await getAdminSupabaseClient());
 
   const { data: visitor } = await supabase
     .from('visitors')
@@ -480,13 +486,13 @@ export async function getVisitorDetail(visitorId: string): Promise<{
   };
 }
 
-export async function runRetentionCleanup(daysToKeep?: number): Promise<{
+export async function runRetentionCleanup(daysToKeep?: number, clientOverride?: SupabaseClient): Promise<{
   deleted_page_views: number;
   deleted_events: number;
   deleted_sessions: number;
   deleted_visitors: number;
 }> {
-  const supabase = await getAdminSupabaseClient();
+  const supabase = clientOverride || (await getAdminSupabaseClient());
   const { data, error } = await supabase.rpc('cleanup_old_analytics', {
     days_to_keep: daysToKeep || null,
   });

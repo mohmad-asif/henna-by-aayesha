@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse, type NextRequest } from 'next/server';
-import { createClient as createServerClient } from '@/lib/supabase/server';
+import { verifyAdminAuth } from '@/lib/auth/admin-api';
 import { getAdminSupabaseClient } from '@/lib/supabase/service-role';
 import {
   encryptApiKey,
@@ -13,6 +13,7 @@ import {
 } from '@/lib/ai/encryption';
 import { ClientAIProvider, AIProviderKey, DbAIProvider } from '@/lib/ai/types';
 import { getProvider } from '@/lib/ai/providers';
+import { saveProvidersCache, updateProviderInCache } from '@/lib/ai/provider-cache';
 
 
 const DEFAULT_PROVIDERS: {
@@ -76,42 +77,9 @@ const DEFAULT_PROVIDERS: {
   },
 ];
 
-async function verifyAdminAuth(request?: NextRequest) {
-  try {
-    // 1. Check cookie-based session (standard browser admin panel)
-    const supabase = await createServerClient();
-    const {
-      data: { user: cookieUser },
-    } = await supabase.auth.getUser();
-
-    if (cookieUser) {
-      return cookieUser;
-    }
-
-    // 2. Check Bearer token header (programmatic / API testing access)
-    if (request) {
-      const authHeader = request.headers.get('authorization');
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7).trim();
-        const adminClient = await getAdminSupabaseClient();
-        const {
-          data: { user: tokenUser },
-        } = await adminClient.auth.getUser(token);
-        if (tokenUser) {
-          return tokenUser;
-        }
-      }
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 export async function GET(request: NextRequest) {
-  const user = await verifyAdminAuth(request);
-  if (!user) {
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
     return NextResponse.json(
       { error: 'Unauthorized. Admin session required.' },
       { status: 401 }
@@ -119,7 +87,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = await getAdminSupabaseClient();
+    const supabase = auth.client;
     const { data, error } = await supabase
       .from('ai_providers')
       .select('*')
@@ -129,6 +97,7 @@ export async function GET(request: NextRequest) {
 
     if (!error && data && data.length > 0) {
       dbRows = data as DbAIProvider[];
+      saveProvidersCache(dbRows);
     } else {
       if (error) {
         console.error('[Admin AI Providers API] GET error querying ai_providers:', error.message);
@@ -266,8 +235,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const user = await verifyAdminAuth(request);
-  if (!user) {
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
     return NextResponse.json(
       { error: 'Unauthorized. Admin session required.' },
       { status: 401 }
@@ -302,7 +271,7 @@ export async function POST(request: NextRequest) {
     const adapter = getProvider(provider_key);
     const displayName = adapter?.displayName || provider_key;
 
-    const supabase = await getAdminSupabaseClient();
+    const supabase = auth.client;
 
     // Check if provider row already exists
     const { data: existing, error: findError } = await supabase
@@ -478,6 +447,8 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    updateProviderInCache(saved);
 
     console.log('[Admin AI Providers API] Successfully updated provider in database:', {
       provider_key: saved.provider_key,

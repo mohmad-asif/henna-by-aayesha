@@ -67,6 +67,8 @@ export function AiAssistantWidget({ settings }: { settings?: SiteConfig }) {
   // Do not render floating chatbot inside the Admin Panel
   const isAdmin = pathname.startsWith('/admin');
 
+  const STORAGE_CONV_KEY = 'hba_ai_conversation_id';
+  const [conversationId, setConversationId] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<MessageItem[]>(() => [
     {
@@ -83,6 +85,58 @@ export function AiAssistantWidget({ settings }: { settings?: SiteConfig }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
+
+  // Restore active conversation from Supabase across page reloads
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let activeId = localStorage.getItem(STORAGE_CONV_KEY);
+    if (!activeId) {
+      activeId = crypto.randomUUID();
+      try {
+        localStorage.setItem(STORAGE_CONV_KEY, activeId);
+      } catch {
+        // storage restricted
+      }
+    }
+    setConversationId(activeId);
+
+    // Fetch existing messages from Supabase
+    fetch(`/api/ai/chat/history?conversationId=${encodeURIComponent(activeId)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          const restored: MessageItem[] = data.messages.map((m: {
+            id?: string;
+            role: 'user' | 'assistant';
+            content: string;
+            action?: ChatAction;
+            recommendations?: RecommendedDesign[];
+            follow_up_question?: string | null;
+            created_at?: string;
+          }, idx: number) => {
+            const date = m.created_at ? new Date(m.created_at) : new Date();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return {
+              id: m.id || `restored-${idx}`,
+              role: m.role,
+              content: m.content,
+              action: m.action,
+              recommendations: m.recommendations,
+              followUpQuestion: m.follow_up_question,
+              timestamp: `${hours}:${minutes}`,
+            };
+          });
+
+          setMessages(restored);
+          setHasInteracted(true);
+        }
+      })
+      .catch((err) => {
+        console.error('[AI Assistant] History load error:', err);
+      });
+  }, []);
 
   // Auto scroll to latest message
   const scrollToBottom = () => {
@@ -136,12 +190,45 @@ export function AiAssistantWidget({ settings }: { settings?: SiteConfig }) {
     setInputValue('');
     setIsLoading(true);
 
+    const currentConvId =
+      conversationId ||
+      localStorage.getItem(STORAGE_CONV_KEY) ||
+      crypto.randomUUID();
+
+    if (!conversationId) {
+      setConversationId(currentConvId);
+      try {
+        localStorage.setItem(STORAGE_CONV_KEY, currentConvId);
+      } catch {
+        // storage restricted
+      }
+    }
+
+    // Get visitor identifiers for analytics & conversation linking
+    let visitorId: string | undefined;
+    let sessionId: string | undefined;
     try {
-      // Send chat request to /api/ai/chat
+      const { getOrCreateVisitorId, getOrCreateSessionId } = await import('@/lib/analytics/tracker');
+      const v = getOrCreateVisitorId();
+      visitorId = v.visitorId;
+      const s = getOrCreateSessionId(visitorId);
+      sessionId = s.sessionId;
+    } catch {
+      // safe fallback
+    }
+
+    const clientMessageId = crypto.randomUUID();
+
+    try {
+      // Send chat request to /api/ai/chat with conversationId and visitorId
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          conversationId: currentConvId,
+          visitorId,
+          sessionId,
+          clientMessageId,
           messages: newHistory.map((m) => ({
             role: m.role,
             content: m.content,
@@ -150,6 +237,15 @@ export function AiAssistantWidget({ settings }: { settings?: SiteConfig }) {
       });
 
       const data: ChatApiResponse = await res.json();
+
+      if (data.conversationId && data.conversationId !== currentConvId) {
+        setConversationId(data.conversationId);
+        try {
+          localStorage.setItem(STORAGE_CONV_KEY, data.conversationId);
+        } catch {
+          // ignore
+        }
+      }
 
       const assistantMsg = createChatMessage(
         'assistant',
@@ -187,6 +283,13 @@ export function AiAssistantWidget({ settings }: { settings?: SiteConfig }) {
 
   const handleClearChat = () => {
     messageCounter += 1;
+    const newConvId = crypto.randomUUID();
+    setConversationId(newConvId);
+    try {
+      localStorage.setItem(STORAGE_CONV_KEY, newConvId);
+    } catch {
+      // storage restricted
+    }
     setMessages([
       {
         id: `welcome-${messageCounter}`,

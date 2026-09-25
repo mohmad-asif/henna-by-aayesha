@@ -93,5 +93,6 @@ export interface ChatApiResponse {
   preferences?: DesignPreferences;
   recommendations?: RecommendedDesign[];
   followUpQuestion?: string | null;
+  conversationId?: string;
 }
 

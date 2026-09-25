@@ -1,10 +1,12 @@
 import { getAdminSupabaseClient } from '@/lib/supabase/service-role';
 import { getProvider } from './providers';
-import { decryptApiKey } from './encryption';
+import { decryptApiKey, encryptApiKey } from './encryption';
+import { getProvidersFromCache } from './provider-cache';
 import {
   ChatMessage,
   GenerateTextResult,
   DbAIProvider,
+  AIProviderKey,
 } from './types';
 
 export interface RouteChatOptions {
@@ -50,10 +52,45 @@ export async function routeChat(options: RouteChatOptions): Promise<RouterRespon
     console.error('[AI Router] Could not load ai_providers from Supabase:', err);
   }
 
+  // Fallback: If Supabase returned 0 providers (e.g. anon key blocked by RLS without service role key), check local server cache
+  if (enabledProviders.length === 0) {
+    const cached = getProvidersFromCache();
+    enabledProviders = cached.filter((p) => p.enabled);
+  }
+
   // Filter providers that have an encrypted key
-  const validProviders = enabledProviders.filter(
+  let validProviders = enabledProviders.filter(
     (p) => p.encrypted_api_key && p.encrypted_api_key.trim().length > 0
   );
+
+  // If no providers found in DB (or RLS blocked anon read without service role key), check environment variables as fallback
+  if (validProviders.length === 0) {
+    const envFallbackMap: { key: AIProviderKey; envName: string; defaultModel: string; priority: number }[] = [
+      { key: 'groq', envName: 'GROQ_API_KEY', defaultModel: 'llama-3.3-70b-versatile', priority: 1 },
+      { key: 'gemini', envName: 'GEMINI_API_KEY', defaultModel: 'gemini-2.5-flash', priority: 2 },
+      { key: 'openrouter', envName: 'OPENROUTER_API_KEY', defaultModel: 'meta-llama/llama-3.2-3b-instruct', priority: 3 },
+      { key: 'mistral', envName: 'MISTRAL_API_KEY', defaultModel: 'mistral-small-latest', priority: 4 },
+      { key: 'cohere', envName: 'COHERE_API_KEY', defaultModel: 'command-r-plus-08-2024', priority: 5 },
+    ];
+
+    for (const item of envFallbackMap) {
+      const envKey = process.env[item.envName];
+      if (envKey && envKey.trim().length > 0) {
+        validProviders.push({
+          id: `env-${item.key}`,
+          provider_key: item.key,
+          display_name: item.key.charAt(0).toUpperCase() + item.key.slice(1),
+          enabled: true,
+          encrypted_api_key: encryptApiKey(envKey.trim()),
+          model: item.defaultModel,
+          priority: item.priority,
+          last_status: 'connected',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+    }
+  }
 
   console.log('[AI Router] Safe diagnostics:', {
     enabledProvidersCount: enabledProviders.length,

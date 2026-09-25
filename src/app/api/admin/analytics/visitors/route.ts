@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       endDate,
       sortBy,
       sortOrder,
-    });
+    }, auth.client);
 
     return NextResponse.json(result);
   } catch (error: unknown) {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 interface LiveVisitor {
   visitor_id: string;
+  ip_address?: string | null;
   device_type: string;
   browser: string;
   os: string;
@@ -175,6 +176,7 @@ export default function LiveVisitorsPage() {
               <thead className="bg-[#FAF6F0] text-[#703D24] uppercase text-[10px] tracking-wider font-semibold border-b border-[#EADFD3]">
                 <tr>
                   <th className="py-3 px-4">Visitor</th>
+                  <th className="py-3 px-4">IP Address</th>
                   <th className="py-3 px-4">Location</th>
                   <th className="py-3 px-4">Device / System</th>
                   <th className="py-3 px-4">Current Page</th>
@@ -194,6 +196,17 @@ export default function LiveVisitorsPage() {
                           {v.visitor_id.substring(0, 8)}...
                         </span>
                       </div>
+                    </td>
+
+                    {/* IP Address */}
+                    <td className="py-3 px-4 font-mono text-[11px] text-[#261B16]">
+                      {v.ip_address ? (
+                        <span className="px-2 py-0.5 rounded bg-[#FAF3EE] text-[#4E2714] border border-[#EADBCE] font-medium">
+                          {v.ip_address}
+                        </span>
+                      ) : (
+                        <span className="text-[#A39184] italic">—</span>
+                      )}
                     </td>
 
                     {/* Location */}

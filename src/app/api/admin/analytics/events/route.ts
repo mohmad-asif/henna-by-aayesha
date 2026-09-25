@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate') || undefined;
     const endDate = searchParams.get('endDate') || undefined;
 
-    const data = await getAnalyticsOverview({ range, startDate, endDate });
+    const data = await getAnalyticsOverview({ range, startDate, endDate }, auth.client);
     return NextResponse.json({
       eventCounts: data.eventCounts,
       whatsappClicks: data.whatsappClicks,

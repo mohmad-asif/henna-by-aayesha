@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const data = await getLiveVisitors();
+    const data = await getLiveVisitors(auth.client);
     return NextResponse.json(data);
   } catch (error: unknown) {
     console.error('[Admin Live Visitors API Error]:', error);

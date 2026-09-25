@@ -15,7 +15,7 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const detail = await getVisitorDetail(id);
+    const detail = await getVisitorDetail(id, auth.client);
 
     if (!detail.visitor) {
       return NextResponse.json({ error: 'Visitor not found' }, { status: 404 });

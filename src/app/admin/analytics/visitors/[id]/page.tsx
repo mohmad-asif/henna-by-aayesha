@@ -98,11 +98,17 @@ export default function VisitorDetailPage() {
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
           <div>
-            <h1 className="font-serif-heading text-2xl sm:text-3xl font-bold text-[#261B16] flex items-center gap-2">
+            <h1 className="font-serif-heading text-2xl sm:text-3xl font-bold text-[#261B16] flex flex-wrap items-center gap-2">
               <span>Visitor Profile</span>
               <span className="font-mono text-xs font-normal text-[#847269] bg-[#FAF3EE] px-2.5 py-1 rounded-lg border border-[#EADBCE]">
                 {visitor.visitor_id}
               </span>
+              {visitor.ip_address && (
+                <span className="font-mono text-xs font-semibold text-[#4E2714] bg-[#FAF3EE] px-2.5 py-1 rounded-lg border border-[#EADBCE] flex items-center gap-1.5" title="Visitor IP Address">
+                  <span>🌐</span>
+                  <span>{visitor.ip_address}</span>
+                </span>
+              )}
             </h1>
             <p className="text-xs text-[#703D24]">
               First visited on {formatDate(visitor.first_visit_at)} · Last active {formatDate(visitor.last_active_at)}
@@ -112,7 +118,7 @@ export default function VisitorDetailPage() {
       </div>
 
       {/* 1. Overview Cards (Section 6) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3.5">
         <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">
           <span className="text-[11px] font-semibold text-[#847269] uppercase block mb-1">Total Visits</span>
           <span className="font-serif-heading text-2xl font-bold text-[#4E2714]">{visitor.visit_count}</span>
@@ -121,6 +127,14 @@ export default function VisitorDetailPage() {
         <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">
           <span className="text-[11px] font-semibold text-[#847269] uppercase block mb-1">Page Views</span>
           <span className="font-serif-heading text-2xl font-bold text-[#4E2714]">{visitor.page_views_count}</span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">
+          <span className="text-[11px] font-semibold text-[#847269] uppercase block mb-1">IP Address</span>
+          <span className="text-xs font-bold text-[#261B16] font-mono block truncate" title={visitor.ip_address || 'Not recorded'}>
+            {visitor.ip_address || '—'}
+          </span>
+          <span className="text-[11px] text-[#847269] block">Public Network</span>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">

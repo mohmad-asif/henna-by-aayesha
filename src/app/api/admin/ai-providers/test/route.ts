@@ -2,42 +2,14 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse, type NextRequest } from 'next/server';
-import { createClient as createServerClient } from '@/lib/supabase/server';
-import { getAdminSupabaseClient } from '@/lib/supabase/service-role';
+import { verifyAdminAuth } from '@/lib/auth/admin-api';
 import { getProvider } from '@/lib/ai/providers';
 import { decryptApiKey } from '@/lib/ai/encryption';
 import { AIProviderKey } from '@/lib/ai/types';
 
-async function verifyAdminAuth(request?: NextRequest) {
-  try {
-    const supabase = await createServerClient();
-    const {
-      data: { user: cookieUser },
-    } = await supabase.auth.getUser();
-
-    if (cookieUser) return cookieUser;
-
-    if (request) {
-      const authHeader = request.headers.get('authorization');
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7).trim();
-        const adminClient = await getAdminSupabaseClient();
-        const {
-          data: { user: tokenUser },
-        } = await adminClient.auth.getUser(token);
-        if (tokenUser) return tokenUser;
-      }
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 export async function POST(request: NextRequest) {
-  const user = await verifyAdminAuth(request);
-  if (!user) {
+  const auth = await verifyAdminAuth(request);
+  if (!auth) {
     return NextResponse.json(
       { error: 'Unauthorized. Admin session required.' },
       { status: 401 }
@@ -99,7 +71,7 @@ export async function POST(request: NextRequest) {
 
       // If either credential was omitted, retrieve saved credential from database
       if (!targetAccountId || !targetApiToken) {
-        const dbClient = await getAdminSupabaseClient();
+        const dbClient = auth.client;
         const { data: dbRow } = await dbClient
           .from('ai_providers')
           .select('*')
@@ -166,7 +138,7 @@ export async function POST(request: NextRequest) {
         keyToTest = api_key.trim();
       } else {
         // Fetch saved key from Supabase using admin client
-        const dbClient = await getAdminSupabaseClient();
+        const dbClient = auth.client;
         const { data: dbRow } = await dbClient
           .from('ai_providers')
           .select('*')
@@ -194,7 +166,7 @@ export async function POST(request: NextRequest) {
 
     // Save test result to database asynchronously
     try {
-      const dbClient = await getAdminSupabaseClient();
+      const dbClient = auth.client;
       await dbClient
         .from('ai_providers')
         .update({

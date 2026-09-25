@@ -84,6 +84,11 @@ export async function getActiveEmbeddingConfig(): Promise<ResolvedEmbeddingConfi
     }
   }
 
+  // 3. Fallback to GEMINI_API_KEY from environment variables
+  if (!decryptedKey && process.env.GEMINI_API_KEY) {
+    decryptedKey = process.env.GEMINI_API_KEY.trim();
+  }
+
   if (!decryptedKey) {
     console.warn(
       `[Embedding Router] No API key available for embedding provider ${settings.provider_key}. Category: EMBEDDING_KEY_MISSING.`

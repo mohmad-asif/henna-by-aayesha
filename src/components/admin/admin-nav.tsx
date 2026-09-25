@@ -69,6 +69,7 @@ const navSections: NavSection[] = [
     title: 'AI Assistant',
     items: [
       { name: 'AI Settings', href: '/admin/ai-settings', icon: '🤖' },
+      { name: 'Chat History', href: '/admin/ai-conversations', icon: '💬' },
     ],
   },
 ];

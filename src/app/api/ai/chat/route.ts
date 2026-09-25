@@ -91,7 +91,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let body: { messages?: unknown };
+    let body: {
+      messages?: unknown;
+      conversationId?: string;
+      visitorId?: string;
+      sessionId?: string;
+      clientMessageId?: string;
+      userName?: string;
+      userEmail?: string;
+      clientInfo?: Record<string, unknown>;
+    };
     try {
       body = await request.json();
     } catch {
@@ -149,7 +158,43 @@ export async function POST(request: NextRequest) {
     const lastUserMessage =
       validatedMessages.filter((m) => m.role === 'user').slice(-1)[0]?.content || '';
 
-    console.log('[Chat API] Request received | messagesCount:', validatedMessages.length, '| queryLength:', lastUserMessage.length);
+    // Generate or use existing conversation ID
+    const conversationId =
+      body.conversationId && body.conversationId.length > 10
+        ? body.conversationId
+        : crypto.randomUUID();
+
+    // Persist conversation and user message in Supabase
+    let activeConversationId: string | null = null;
+    try {
+      const { getOrCreateConversation, saveMessage } = await import('@/lib/ai/chat-service');
+      const conv = await getOrCreateConversation({
+        conversationId,
+        visitorId: body.visitorId || null,
+        sessionId: body.sessionId || null,
+        userName: body.userName || null,
+        userEmail: body.userEmail || null,
+        initialMessage: lastUserMessage,
+        metadata: {
+          ...(body.clientInfo || {}),
+          ip,
+        },
+      });
+
+      if (conv) {
+        activeConversationId = conv.id;
+        await saveMessage({
+          conversationId: conv.id,
+          role: 'user',
+          content: lastUserMessage,
+          clientMessageId: body.clientMessageId || null,
+        });
+      }
+    } catch (persistErr) {
+      console.error('[Chat API] Failed to persist user message:', persistErr);
+    }
+
+    console.log('[Chat API] Request received | conversationId:', conversationId, '| messagesCount:', validatedMessages.length, '| queryLength:', lastUserMessage.length);
 
     // 3. Extract multi-lingual conversational preferences & detect design intent
     const { extractConversationalPreferences, hasDesignDiscoveryIntent } = await import(
@@ -280,7 +325,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[Chat API] Final response prepared | provider:', routerResult.providerKey, '| isFallback:', routerResult.isFallback, '| recommendationsCount:', validatedRecommendations.length);
 
-    const responsePayload: ChatApiResponse = {
+    const responsePayload = {
       message: finalAnswer,
       action,
       isFallback: routerResult.isFallback,
@@ -294,7 +339,26 @@ export async function POST(request: NextRequest) {
         title: s.title,
         similarity: s.similarity,
       })),
+      conversationId: activeConversationId || conversationId,
     };
+
+    // Save AI response to Supabase
+    if (activeConversationId) {
+      try {
+        const { saveMessage } = await import('@/lib/ai/chat-service');
+        await saveMessage({
+          conversationId: activeConversationId,
+          role: 'assistant',
+          content: finalAnswer,
+          action,
+          recommendations: validatedRecommendations.length > 0 ? validatedRecommendations : null,
+          followUpQuestion,
+          provider: routerResult.providerKey,
+        });
+      } catch (saveErr) {
+        console.error('[Chat API] Failed to persist assistant response:', saveErr);
+      }
+    }
 
     return NextResponse.json(responsePayload);
 

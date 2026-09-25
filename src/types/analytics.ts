@@ -1,5 +1,6 @@
 export interface Visitor {
   visitor_id: string;
+  ip_address?: string | null;
   first_visit_at: string;
   last_visit_at: string;
   last_active_at: string;
@@ -30,6 +31,7 @@ export interface Visitor {
 export interface VisitorSession {
   session_id: string;
   visitor_id: string;
+  ip_address?: string | null;
   started_at: string;
   last_active_at: string;
   ended_at?: string | null;
