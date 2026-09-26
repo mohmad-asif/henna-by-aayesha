@@ -480,14 +480,14 @@ export default function AdminAISettingsPage() {
   const sortedProviders = [...providers].sort((a, b) => a.priority - b.priority);
 
   return (
-    <div className="p-6 sm:p-10 max-w-7xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#EADBCE]">
         <div>
           <span className="text-xs uppercase tracking-wider font-bold text-[#B95945]">
             AI Management
           </span>
-          <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
+          <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
             AI Settings
           </h1>
           <p className="text-xs sm:text-sm text-[#703D24] mt-1 max-w-3xl">
@@ -502,7 +502,7 @@ export default function AdminAISettingsPage() {
             loadEmbeddingSettings();
             loadKnowledgeBase();
           }}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#4E2714] bg-[#F5ECE4] hover:bg-[#EBDDCF] border border-[#E4D2C3] rounded-xl transition-colors self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-[#4E2714] bg-[#F5ECE4] hover:bg-[#EBDDCF] border border-[#E4D2C3] rounded-xl transition-colors w-full sm:w-auto cursor-pointer"
         >
           <span>↻ Refresh All</span>
         </button>
@@ -521,7 +521,7 @@ export default function AdminAISettingsPage() {
           <span className="leading-snug">{statusAlert.message}</span>
           <button
             onClick={() => setStatusAlert(null)}
-            className="text-xs font-bold opacity-60 hover:opacity-100"
+            className="text-xs font-bold opacity-60 hover:opacity-100 cursor-pointer"
           >
             ✕
           </button>
@@ -529,10 +529,10 @@ export default function AdminAISettingsPage() {
       )}
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-[#EADBCE] pb-1">
+      <div className="flex items-center gap-2 border-b border-[#EADBCE] pb-1 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('chat')}
-          className={`px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-colors border-b-2 -mb-[3px] ${activeTab === 'chat'
+          className={`shrink-0 whitespace-nowrap px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-colors border-b-2 -mb-[3px] cursor-pointer ${activeTab === 'chat'
             ? 'border-[#B95945] text-[#B95945] bg-white'
             : 'border-transparent text-[#703D24] hover:text-[#261B16] hover:bg-[#FAF6F0]'
             }`}
@@ -542,7 +542,7 @@ export default function AdminAISettingsPage() {
 
         <button
           onClick={() => setActiveTab('embedding')}
-          className={`px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-colors border-b-2 -mb-[3px] ${activeTab === 'embedding'
+          className={`shrink-0 whitespace-nowrap px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-colors border-b-2 -mb-[3px] cursor-pointer ${activeTab === 'embedding'
             ? 'border-[#B95945] text-[#B95945] bg-white'
             : 'border-transparent text-[#703D24] hover:text-[#261B16] hover:bg-[#FAF6F0]'
             }`}
@@ -552,7 +552,7 @@ export default function AdminAISettingsPage() {
 
         <button
           onClick={() => setActiveTab('knowledge')}
-          className={`px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-colors border-b-2 -mb-[3px] ${activeTab === 'knowledge'
+          className={`shrink-0 whitespace-nowrap px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-colors border-b-2 -mb-[3px] cursor-pointer ${activeTab === 'knowledge'
             ? 'border-[#B95945] text-[#B95945] bg-white'
             : 'border-transparent text-[#703D24] hover:text-[#261B16] hover:bg-[#FAF6F0]'
             }`}
@@ -562,7 +562,7 @@ export default function AdminAISettingsPage() {
 
         <button
           onClick={() => setActiveTab('recommendations')}
-          className={`px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-colors border-b-2 -mb-[3px] ${activeTab === 'recommendations'
+          className={`shrink-0 whitespace-nowrap px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-colors border-b-2 -mb-[3px] cursor-pointer ${activeTab === 'recommendations'
             ? 'border-[#B95945] text-[#B95945] bg-white'
             : 'border-transparent text-[#703D24] hover:text-[#261B16] hover:bg-[#FAF6F0]'
             }`}

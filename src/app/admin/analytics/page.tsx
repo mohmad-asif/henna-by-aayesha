@@ -120,9 +120,9 @@ export default function AnalyticsOverviewPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EADBCE]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl">📈</span>
@@ -139,10 +139,10 @@ export default function AnalyticsOverviewPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href="/admin/analytics/live"
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#25D366]/15 text-[#1EBE5D] border border-[#25D366]/30 hover:bg-[#25D366]/25 transition-colors"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-[#25D366]/15 text-[#1EBE5D] border border-[#25D366]/30 hover:bg-[#25D366]/25 transition-colors"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-75" />
@@ -154,7 +154,7 @@ export default function AnalyticsOverviewPage() {
           <button
             type="button"
             onClick={() => setShowSettingsModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white text-[#4E2714] border border-[#D6C1AF] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white text-[#4E2714] border border-[#D6C1AF] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
           >
             <span>⚙️</span>
             <span>Retention & Privacy</span>
@@ -394,11 +394,11 @@ export default function AnalyticsOverviewPage() {
 
       {/* Settings & Data Retention Modal */}
       {showSettingsModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-[#EADFD3] shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-7 border border-[#EADFD3] shadow-2xl space-y-5 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#F0E5D8] pb-4">
               <div>
-                <h3 className="font-serif-heading text-lg font-bold text-[#261B16]">
+                <h3 className="font-serif-heading text-lg sm:text-xl font-bold text-[#261B16]">
                   Analytics Settings & Data Retention
                 </h3>
                 <p className="text-xs text-[#847269]">
@@ -408,7 +408,8 @@ export default function AnalyticsOverviewPage() {
               <button
                 type="button"
                 onClick={() => setShowSettingsModal(false)}
-                className="text-xs text-[#847269] hover:text-[#261B16]"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#847269] hover:text-[#261B16] hover:bg-[#FAF3EE] transition-colors cursor-pointer"
+                aria-label="Close dialog"
               >
                 ✕
               </button>
@@ -422,7 +423,7 @@ export default function AnalyticsOverviewPage() {
                 <select
                   value={retentionDays}
                   onChange={(e) => setRetentionDays(parseInt(e.target.value, 10))}
-                  className="w-full px-3 py-2 bg-white border border-[#D6C1AF] rounded-xl text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#C29B4D]"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#D6C1AF] rounded-xl text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#C29B4D] cursor-pointer"
                 >
                   <option value={30}>30 Days (Strict Privacy)</option>
                   <option value={60}>60 Days</option>
@@ -446,30 +447,30 @@ export default function AnalyticsOverviewPage() {
                   type="button"
                   onClick={handleRunCleanup}
                   disabled={isCleaningUp}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-[#B95945] hover:bg-[#A34B38] text-white transition-colors cursor-pointer disabled:opacity-50"
+                  className="w-full sm:w-auto px-3.5 py-2 rounded-lg text-xs font-medium bg-[#B95945] hover:bg-[#A34B38] text-white transition-colors cursor-pointer disabled:opacity-50 text-center"
                 >
                   {isCleaningUp ? 'Purging Old Records...' : `Run Cleanup (${retentionDays}d cutoff)`}
                 </button>
                 {cleanupMessage && (
-                  <p className="text-[11px] font-medium text-[#1EBE5D] mt-1">
+                  <p className="text-[11px] font-medium text-[#1EBE5D] mt-1 break-words">
                     {cleanupMessage}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#F0E5D8]">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 pt-3 border-t border-[#F0E5D8]">
               <button
                 type="button"
                 onClick={() => setShowSettingsModal(false)}
-                className="px-4 py-2 text-xs font-medium text-[#847269] hover:text-[#261B16]"
+                className="w-full sm:w-auto px-4 py-2.5 text-xs font-medium text-[#847269] hover:text-[#261B16] border border-[#EADFD3] rounded-xl hover:bg-[#FAF6F0] transition-colors cursor-pointer text-center"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={handleSaveRetention}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#4E2714] hover:bg-[#381A0E] text-white shadow-xs cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#4E2714] hover:bg-[#381A0E] text-white shadow-xs cursor-pointer text-center"
               >
                 Save Retention Settings
               </button>

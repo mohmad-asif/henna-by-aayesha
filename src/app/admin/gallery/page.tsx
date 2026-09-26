@@ -215,21 +215,21 @@ export default function AdminGalleryPage() {
   };
 
   return (
-    <div className="p-6 sm:p-10 max-w-7xl w-full mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#EADBCE]">
         <div>
           <span className="text-xs uppercase tracking-wider font-bold text-[#B95945]">
             Visual Portfolio
           </span>
-          <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
+          <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
             Photo Gallery
           </h1>
         </div>
 
         <button
           onClick={openAddModal}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#4E2714] text-white text-xs sm:text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#4E2714] text-white text-xs sm:text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md w-full sm:w-auto cursor-pointer"
         >
           <span>+ Upload Gallery Photo</span>
         </button>
@@ -258,7 +258,7 @@ export default function AdminGalleryPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {items.map((item) => (
             <div
               key={item.id}
@@ -278,10 +278,10 @@ export default function AdminGalleryPage() {
 
               <div className="p-4 flex flex-col justify-between flex-grow">
                 <div>
-                  <h3 className="font-semibold text-sm text-[#261B16]">
+                  <h3 className="font-semibold text-sm text-[#261B16] break-words">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-[#847269] mt-1 line-clamp-1">
+                  <p className="text-xs text-[#847269] mt-1 line-clamp-1 break-words">
                     {item.alt_text}
                   </p>
                 </div>
@@ -289,7 +289,7 @@ export default function AdminGalleryPage() {
                 <div className="mt-4 pt-3 border-t border-[#F5ECE4] flex items-center justify-between">
                   <button
                     onClick={() => handleToggleActive(item)}
-                    className={`text-xs px-2.5 py-1 rounded-full font-semibold ${item.active
+                    className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-colors cursor-pointer ${item.active
                         ? 'bg-[#EAFBF0] text-[#1EBE5D]'
                         : 'bg-red-50 text-red-500'
                       }`}
@@ -300,13 +300,13 @@ export default function AdminGalleryPage() {
                   <div className="space-x-2">
                     <button
                       onClick={() => openEditModal(item)}
-                      className="text-xs font-semibold text-[#4E2714] hover:text-[#B95945]"
+                      className="text-xs font-semibold text-[#4E2714] hover:text-[#B95945] px-2 py-1 rounded hover:bg-[#FAF3EE] cursor-pointer"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="text-xs font-semibold text-red-600 hover:text-red-700"
+                      className="text-xs font-semibold text-red-600 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 cursor-pointer"
                     >
                       Delete
                     </button>
@@ -320,155 +320,170 @@ export default function AdminGalleryPage() {
 
       {/* Modal Dialog for Upload / Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full border border-[#EADFD3] shadow-2xl my-8">
-            <h2 className="font-serif-heading text-2xl font-semibold text-[#261B16]">
-              {editingItem ? 'Edit Gallery Photo' : 'Upload Gallery Photo'}
-            </h2>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-xl w-full border border-[#EADFD3] shadow-2xl my-auto max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-6 border-b border-[#F0E5D8] flex items-center justify-between gap-4 shrink-0 bg-[#FAF8F5]/80">
+              <h2 className="font-serif-heading text-xl sm:text-2xl font-semibold text-[#261B16]">
+                {editingItem ? 'Edit Gallery Photo' : 'Upload Gallery Photo'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#847269] hover:text-[#261B16] hover:bg-[#FAF3EE] transition-colors cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1">
-                  Photo Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, title: e.target.value }))
-                  }
-                  placeholder="Royal Maharani Bridal Palms"
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1">
-                    Category *
+                    Photo Title *
                   </label>
-                  <select
-                    value={formData.category}
+                  <input
+                    type="text"
+                    required
+                    value={formData.title}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, category: e.target.value }))
+                      setFormData((prev) => ({ ...prev, title: e.target.value }))
                     }
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
-                  >
-                    <option value="Bridal">Bridal Couture</option>
-                    <option value="Arabic">Modern Arabic</option>
-                    <option value="Traditional">Traditional / Mandala</option>
-                    <option value="Bridal Feet">Bridal Feet</option>
-                    <option value="Minimal">Minimalist</option>
-                    <option value="Custom">Custom / Studio</option>
-                  </select>
+                    placeholder="Royal Maharani Bridal Palms"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1">
+                      Category *
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, category: e.target.value }))
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714] cursor-pointer"
+                    >
+                      <option value="Bridal">Bridal Couture</option>
+                      <option value="Arabic">Modern Arabic</option>
+                      <option value="Traditional">Traditional / Mandala</option>
+                      <option value="Bridal Feet">Bridal Feet</option>
+                      <option value="Minimal">Minimalist</option>
+                      <option value="Custom">Custom / Studio</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1">
+                      Display Order
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.display_order}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          display_order: parseInt(e.target.value, 10) || 1,
+                        }))
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1">
-                    Display Order
+                    Image URL or Upload *
                   </label>
                   <input
-                    type="number"
-                    value={formData.display_order}
+                    type="text"
+                    required
+                    value={formData.image}
                     onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        display_order: parseInt(e.target.value, 10) || 1,
-                      }))
+                      setFormData((prev) => ({ ...prev, image: e.target.value }))
                     }
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714] mb-2"
                   />
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      className="text-xs text-[#703D24] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#FAF3EE] file:text-[#4E2714] hover:file:bg-[#F5ECE4] cursor-pointer"
+                    />
+                    {uploadingImage && (
+                      <span className="text-xs text-[#B95945] animate-pulse">
+                        Uploading to Supabase...
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1">
+                    Alt Text / Caption
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.alt_text || ''}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, alt_text: e.target.value }))
+                    }
+                    placeholder="Bridal mehndi photoshoot in Indiranagar"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 pt-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[#4E2714]">
+                    <input
+                      type="checkbox"
+                      checked={formData.featured}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          featured: e.target.checked,
+                        }))
+                      }
+                      className="rounded text-[#4E2714] focus:ring-[#4E2714]"
+                    />
+                    <span>Feature in Lookbook Highlights</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[#4E2714]">
+                    <input
+                      type="checkbox"
+                      checked={formData.active}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          active: e.target.checked,
+                        }))
+                      }
+                      className="rounded text-[#4E2714] focus:ring-[#4E2714]"
+                    />
+                    <span>Active (Visible)</span>
+                  </label>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1">
-                  Image URL or Upload *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.image}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, image: e.target.value }))
-                  }
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714] mb-2"
-                />
-                <div className="flex items-center gap-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageFileChange}
-                    className="text-xs text-[#703D24] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#FAF3EE] file:text-[#4E2714]"
-                  />
-                  {uploadingImage && (
-                    <span className="text-xs text-[#B95945] animate-pulse">
-                      Uploading to Supabase...
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#58463D] mb-1">
-                  Alt Text / Caption
-                </label>
-                <input
-                  type="text"
-                  value={formData.alt_text || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, alt_text: e.target.value }))
-                  }
-                  placeholder="Bridal mehndi photoshoot in Indiranagar"
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#FCF9F4] border border-[#D6C1AF] text-sm text-[#261B16] focus:outline-none focus:ring-2 focus:ring-[#4E2714]"
-                />
-              </div>
-
-              <div className="flex items-center gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[#4E2714]">
-                  <input
-                    type="checkbox"
-                    checked={formData.featured}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        featured: e.target.checked,
-                      }))
-                    }
-                    className="rounded text-[#4E2714] focus:ring-[#4E2714]"
-                  />
-                  <span>Feature in Lookbook Highlights</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[#4E2714]">
-                  <input
-                    type="checkbox"
-                    checked={formData.active}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        active: e.target.checked,
-                      }))
-                    }
-                    className="rounded text-[#4E2714] focus:ring-[#4E2714]"
-                  />
-                  <span>Active (Visible)</span>
-                </label>
-              </div>
-
-              <div className="pt-4 border-t border-[#F0E5D8] flex items-center justify-end gap-3">
+              <div className="p-4 sm:p-6 border-t border-[#F0E5D8] bg-[#FAF8F5]/80 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#D6C1AF] text-xs font-semibold text-[#58463D] hover:bg-[#FAF3EE]"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-[#D6C1AF] text-xs font-semibold text-[#58463D] hover:bg-white transition-colors cursor-pointer text-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving || uploadingImage}
-                  className="px-5 py-2 rounded-xl bg-[#4E2714] text-white text-xs font-semibold hover:bg-[#381A0E] disabled:opacity-50"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#4E2714] text-white text-xs font-semibold hover:bg-[#381A0E] transition-all disabled:opacity-50 cursor-pointer text-center shadow-xs"
                 >
                   {saving ? 'Saving...' : editingItem ? 'Update Photo' : 'Add to Gallery'}
                 </button>

@@ -87,7 +87,7 @@ export default function VisitorDetailPage() {
   }
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Back Link & Title */}
       <div className="space-y-1">
         <Link
@@ -118,7 +118,7 @@ export default function VisitorDetailPage() {
       </div>
 
       {/* 1. Overview Cards (Section 6) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-3.5">
         <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">
           <span className="text-[11px] font-semibold text-[#847269] uppercase block mb-1">Total Visits</span>
           <span className="font-serif-heading text-2xl font-bold text-[#4E2714]">{visitor.visit_count}</span>
@@ -131,7 +131,7 @@ export default function VisitorDetailPage() {
 
         <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">
           <span className="text-[11px] font-semibold text-[#847269] uppercase block mb-1">IP Address</span>
-          <span className="text-xs font-bold text-[#261B16] font-mono block truncate" title={visitor.ip_address || 'Not recorded'}>
+          <span className="text-xs font-bold text-[#261B16] font-mono block truncate break-all" title={visitor.ip_address || 'Not recorded'}>
             {visitor.ip_address || '—'}
           </span>
           <span className="text-[11px] text-[#847269] block">Public Network</span>
@@ -140,7 +140,7 @@ export default function VisitorDetailPage() {
         <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">
           <span className="text-[11px] font-semibold text-[#847269] uppercase block mb-1">Device & System</span>
           <span className="text-xs font-bold text-[#261B16] capitalize block">{visitor.device_type}</span>
-          <span className="text-[11px] text-[#847269]">{visitor.browser} on {visitor.os}</span>
+          <span className="text-[11px] text-[#847269] truncate block">{visitor.browser} on {visitor.os}</span>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">
@@ -153,11 +153,11 @@ export default function VisitorDetailPage() {
 
         <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">
           <span className="text-[11px] font-semibold text-[#847269] uppercase block mb-1">Language & Zone</span>
-          <span className="text-xs font-bold text-[#261B16] block">{visitor.language}</span>
+          <span className="text-xs font-bold text-[#261B16] block truncate">{visitor.language}</span>
           <span className="text-[11px] text-[#847269] truncate block">{visitor.timezone}</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs">
+        <div className="p-4 rounded-2xl bg-white border border-[#EADFD3] shadow-xs col-span-2 sm:col-span-1 md:col-span-2 xl:col-span-1">
           <span className="text-[11px] font-semibold text-[#847269] uppercase block mb-1">Acquisition</span>
           <span className="text-xs font-bold text-[#261B16] truncate block">{visitor.initial_source || 'Direct'}</span>
           <span className="text-[11px] text-[#847269] truncate block">{visitor.landing_page}</span>
@@ -166,11 +166,11 @@ export default function VisitorDetailPage() {
 
       {/* Tabs Navigation */}
       <div className="bg-white rounded-2xl border border-[#EADFD3] shadow-xs overflow-hidden">
-        <div className="flex border-b border-[#F0E5D8] px-4 pt-2">
+        <div className="flex overflow-x-auto border-b border-[#F0E5D8] px-2 sm:px-4 pt-2">
           <button
             type="button"
             onClick={() => setActiveTab('sessions')}
-            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+            className={`py-2.5 sm:py-3 px-3 sm:px-4 text-xs font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 ${
               activeTab === 'sessions'
                 ? 'border-[#4E2714] text-[#4E2714]'
                 : 'border-transparent text-[#847269] hover:text-[#261B16]'

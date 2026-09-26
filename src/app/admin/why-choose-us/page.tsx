@@ -146,14 +146,14 @@ export default function AdminWhyChooseUsPage() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-6xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#EADBCE]">
         <div>
           <span className="text-xs uppercase tracking-wider font-bold text-[#B95945]">
             Content Management
           </span>
-          <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
+          <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
             Why Choose Us Cards
           </h1>
           <p className="text-xs sm:text-sm text-[#703D24] mt-1">
@@ -163,7 +163,7 @@ export default function AdminWhyChooseUsPage() {
 
         <button
           onClick={openAddModal}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#B95945] text-white text-xs sm:text-sm font-semibold hover:bg-[#A04533] transition-colors shadow-xs self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#4E2714] text-white text-xs sm:text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md w-full sm:w-auto cursor-pointer"
         >
           <PlusIcon size={16} />
           <span>Add New Card</span>
@@ -183,11 +183,11 @@ export default function AdminWhyChooseUsPage() {
       )}
 
       {/* Grid of Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {items.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-3xl p-6 border border-[#EADFD3] shadow-xs flex flex-col justify-between transition-all hover:border-[#D4C3B3]"
+            className="bg-white rounded-2xl p-5 border border-[#EADFD3] shadow-xs flex flex-col justify-between transition-all hover:border-[#D4C3B3]"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -206,10 +206,10 @@ export default function AdminWhyChooseUsPage() {
                 </div>
               </div>
 
-              <h3 className="font-serif-heading text-lg font-semibold text-[#261B16] mb-2">
+              <h3 className="font-serif-heading text-lg font-semibold text-[#261B16] mb-2 break-words">
                 {item.title}
               </h3>
-              <p className="text-xs sm:text-sm text-[#703D24] leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#703D24] leading-relaxed break-words">
                 {item.description}
               </p>
             </div>
@@ -217,14 +217,14 @@ export default function AdminWhyChooseUsPage() {
             <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-[#F0E5D8]">
               <button
                 onClick={() => openEditModal(item)}
-                className="p-2 rounded-xl text-[#703D24] hover:bg-[#F5ECE4] hover:text-[#261B16] transition-colors"
+                className="p-2 rounded-xl text-[#703D24] hover:bg-[#F5ECE4] hover:text-[#261B16] transition-colors cursor-pointer"
                 title="Edit Card"
               >
                 <EditIcon size={16} />
               </button>
               <button
                 onClick={() => handleDelete(item.id)}
-                className="p-2 rounded-xl text-[#B95945] hover:bg-[#FDF2F2] transition-colors"
+                className="p-2 rounded-xl text-[#B95945] hover:bg-[#FDF2F2] transition-colors cursor-pointer"
                 title="Delete Card"
               >
                 <TrashIcon size={16} />
@@ -236,98 +236,113 @@ export default function AdminWhyChooseUsPage() {
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-[#EADFD3] shadow-xl">
-            <h2 className="font-serif-heading text-xl font-bold text-[#261B16] mb-4">
-              {editingItem ? 'Edit Feature Card' : 'Add Feature Card'}
-            </h2>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full border border-[#EADFD3] shadow-2xl my-auto max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-6 border-b border-[#F0E5D8] flex items-center justify-between gap-4 shrink-0 bg-[#FAF8F5]/80">
+              <h2 className="font-serif-heading text-xl sm:text-2xl font-semibold text-[#261B16]">
+                {editingItem ? 'Edit Feature Card' : 'Add Feature Card'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#847269] hover:text-[#261B16] hover:bg-[#FAF3EE] transition-colors cursor-pointer"
+                aria-label="Close dialog"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-4 gap-3">
-                <div className="col-span-1">
-                  <label className="block text-xs font-bold text-[#703D24] mb-1 uppercase tracking-wider">
-                    Icon / Emoji
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.icon || '🌿'}
-                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                    className="w-full text-center px-3 py-2 text-lg rounded-xl border border-[#EADFD3] focus:outline-none focus:border-[#B95945]"
-                  />
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="sm:col-span-1">
+                    <label className="block text-xs font-bold text-[#703D24] mb-1 uppercase tracking-wider">
+                      Icon / Emoji
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.icon || '🌿'}
+                      onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                      className="w-full text-center px-3 py-2.5 text-lg rounded-xl border border-[#EADFD3] focus:outline-none focus:border-[#4E2714]"
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <label className="block text-xs font-bold text-[#703D24] mb-1 uppercase tracking-wider">
+                      Card Title *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.title || ''}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="e.g. 100% Organic Henna"
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-[#EADFD3] focus:outline-none focus:border-[#4E2714]"
+                    />
+                  </div>
                 </div>
-                <div className="col-span-3">
-                  <label className="block text-xs font-bold text-[#703D24] mb-1 uppercase tracking-wider">
-                    Card Title
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title || ''}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="e.g. 100% Organic Henna"
-                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-[#EADFD3] focus:outline-none focus:border-[#B95945]"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#703D24] mb-1 uppercase tracking-wider">
-                  Description
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  value={formData.description || ''}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Explain why clients trust this aspect of your artistry..."
-                  className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-[#EADFD3] focus:outline-none focus:border-[#B95945]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-[#703D24] mb-1 uppercase tracking-wider">
-                    Display Order
+                    Description *
                   </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={formData.displayOrder ?? 1}
-                    onChange={(e) =>
-                      setFormData({ ...formData, displayOrder: parseInt(e.target.value, 10) || 1 })
-                    }
-                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-[#EADFD3] focus:outline-none focus:border-[#B95945]"
+                  <textarea
+                    required
+                    rows={3}
+                    value={formData.description || ''}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Explain why clients trust this aspect of your artistry..."
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-[#EADFD3] focus:outline-none focus:border-[#4E2714]"
                   />
                 </div>
 
-                <div className="flex items-center pt-5">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#703D24] mb-1 uppercase tracking-wider">
+                      Display Order
+                    </label>
                     <input
-                      type="checkbox"
-                      checked={formData.published ?? true}
-                      onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-                      className="w-4 h-4 rounded text-[#B95945] focus:ring-[#B95945]"
+                      type="number"
+                      min={1}
+                      value={formData.displayOrder ?? 1}
+                      onChange={(e) =>
+                        setFormData({ ...formData, displayOrder: parseInt(e.target.value, 10) || 1 })
+                      }
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-[#EADFD3] focus:outline-none focus:border-[#4E2714]"
                     />
-                    <span className="text-xs sm:text-sm font-medium text-[#261B16]">
-                      Published
-                    </span>
-                  </label>
+                  </div>
+
+                  <div className="flex items-center sm:pt-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.published ?? true}
+                        onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
+                        className="w-4 h-4 rounded text-[#4E2714] focus:ring-[#4E2714]"
+                      />
+                      <span className="text-xs sm:text-sm font-medium text-[#261B16]">
+                        Published
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#F0E5D8]">
+              <div className="p-4 sm:p-6 border-t border-[#F0E5D8] bg-[#FAF8F5]/80 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs sm:text-sm rounded-xl border border-[#EADFD3] text-[#703D24] hover:bg-[#F5ECE4]"
+                  className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold rounded-xl border border-[#EADFD3] text-[#703D24] hover:bg-white transition-colors cursor-pointer text-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-5 py-2 text-xs sm:text-sm rounded-xl bg-[#B95945] text-white font-semibold hover:bg-[#A04533] disabled:opacity-50"
+                  className="w-full sm:w-auto px-5 py-2.5 text-xs font-semibold rounded-xl bg-[#4E2714] text-white hover:bg-[#381A0E] transition-all disabled:opacity-50 cursor-pointer text-center shadow-xs"
                 >
                   {saving ? 'Saving...' : editingItem ? 'Update Card' : 'Create Card'}
                 </button>

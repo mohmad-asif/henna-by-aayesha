@@ -64,7 +64,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FDFBF7] flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link href="/" className="inline-flex items-center gap-2 group mb-3">
           <div className="w-12 h-12 rounded-full bg-[#FAF3EE] border border-[#E8D9CD] flex items-center justify-center text-[#B95945]">
@@ -72,7 +72,7 @@ export default function AdminLoginPage() {
           </div>
         </Link>
 
-        <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16]">
+        <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16]">
           Henna by Aayesha
         </h1>
         <p className="mt-1 text-xs uppercase tracking-widest text-[#847269] font-medium">
@@ -80,8 +80,8 @@ export default function AdminLoginPage() {
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-6 shadow-xl rounded-3xl sm:px-10 border border-[#EADFD3]">
+      <div className="mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-6 px-5 sm:py-8 sm:px-10 shadow-xl rounded-2xl sm:rounded-3xl border border-[#EADFD3]">
           {/* Mode Switcher Tabs */}
           {/* <div className="flex rounded-xl bg-[#FAF3EE] p-1 mb-6 border border-[#EADBCE]">
             <button

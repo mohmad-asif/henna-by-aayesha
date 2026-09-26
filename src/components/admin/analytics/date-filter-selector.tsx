@@ -88,7 +88,7 @@ export function DateFilterSelector({
           type="button"
           onClick={onExportCsv}
           disabled={isExporting}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#FAF3EE] hover:bg-[#F2ECE4] text-[#4E2714] border border-[#D6C1AF] transition-colors cursor-pointer disabled:opacity-50"
+          className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#FAF3EE] hover:bg-[#F2ECE4] text-[#4E2714] border border-[#D6C1AF] transition-colors cursor-pointer disabled:opacity-50"
         >
           <span>📥</span>
           <span>{isExporting ? 'Exporting...' : 'Export CSV'}</span>
@@ -99,33 +99,33 @@ export function DateFilterSelector({
       {showCustom && (
         <form
           onSubmit={handleApplyCustom}
-          className="w-full pt-3 mt-1 border-t border-[#F0E5D8] flex flex-wrap items-center gap-3 text-xs"
+          className="w-full pt-3 mt-1 border-t border-[#F0E5D8] flex flex-col sm:flex-row sm:items-center gap-3 text-xs"
         >
-          <div className="flex items-center gap-2">
-            <label className="text-[#847269] font-medium">From:</label>
+          <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+            <label className="text-[#847269] font-medium shrink-0">From:</label>
             <input
               type="date"
               value={customStart}
               onChange={(e) => setCustomStart(e.target.value)}
-              className="px-2.5 py-1 bg-white border border-[#D6C1AF] rounded-lg text-[#261B16] focus:outline-none focus:ring-1 focus:ring-[#C29B4D]"
+              className="w-full sm:w-auto px-2.5 py-1.5 bg-white border border-[#D6C1AF] rounded-lg text-[#261B16] focus:outline-none focus:ring-1 focus:ring-[#C29B4D]"
               required
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-[#847269] font-medium">To:</label>
+          <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+            <label className="text-[#847269] font-medium shrink-0">To:</label>
             <input
               type="date"
               value={customEnd}
               onChange={(e) => setCustomEnd(e.target.value)}
-              className="px-2.5 py-1 bg-white border border-[#D6C1AF] rounded-lg text-[#261B16] focus:outline-none focus:ring-1 focus:ring-[#C29B4D]"
+              className="w-full sm:w-auto px-2.5 py-1.5 bg-white border border-[#D6C1AF] rounded-lg text-[#261B16] focus:outline-none focus:ring-1 focus:ring-[#C29B4D]"
               required
             />
           </div>
 
           <button
             type="submit"
-            className="px-3.5 py-1 bg-[#4E2714] text-white font-medium rounded-lg hover:bg-[#381A0E] cursor-pointer"
+            className="w-full sm:w-auto px-4 py-1.5 bg-[#4E2714] text-white font-medium rounded-lg hover:bg-[#381A0E] cursor-pointer text-center"
           >
             Apply
           </button>

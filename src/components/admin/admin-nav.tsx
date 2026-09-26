@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -84,6 +84,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   // If on login page, render clean layout without sidebar
   const isLoginPage = pathname === '/admin/login';
 
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
+
+  // Fetch logged in user email
   useEffect(() => {
     if (!isLoginPage) {
       const supabase = createClient();
@@ -94,6 +99,30 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       });
     }
   }, [isLoginPage]);
+
+  // Close mobile drawer on route navigation
+  useEffect(() => {
+    closeMobileMenu();
+  }, [pathname, closeMobileMenu]);
+
+  // Lock body scroll and listen for Escape key when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          closeMobileMenu();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [mobileMenuOpen, closeMobileMenu]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -109,6 +138,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const isLinkActive = (href: string) => {
+    if (href === '/admin') {
+      return pathname === '/admin';
+    }
+    return pathname.startsWith(href);
+  };
+
   if (isLoginPage) {
     return (
       <main id="main-content" className="min-h-screen bg-[#FDFBF7] focus:outline-none" tabIndex={-1}>
@@ -118,20 +154,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#F7F4EF] flex flex-col lg:flex-row text-[#261B16]">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 bg-[#2E160C] text-[#F5ECE4] border-r border-[#432314] flex-shrink-0 z-30 overflow-y-auto">
+    <div className="h-screen w-full bg-[#F7F4EF] flex flex-col lg:flex-row text-[#261B16] overflow-hidden">
+      {/* Desktop Sidebar (lg: and above) */}
+      <aside className="hidden lg:flex flex-col w-64 h-full bg-[#2E160C] text-[#F5ECE4] border-r border-[#432314] flex-shrink-0 z-30 overflow-y-auto">
         {/* Brand header */}
         <div className="p-5 border-b border-[#432314] flex-shrink-0">
-          <Link href="/admin" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-[#4E2714] flex items-center justify-center text-[#C29B4D] flex-shrink-0">
+          <Link href="/admin" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-full bg-[#4E2714] flex items-center justify-center text-[#C29B4D] flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform">
               <HennaFloralMotif size={20} />
             </div>
-            <div>
-              <span className="font-serif-heading text-base font-bold text-white block leading-tight">
+            <div className="min-w-0">
+              <span className="font-serif-heading text-base font-bold text-white block leading-tight truncate">
                 Henna by Aayesha
               </span>
-              <span className="text-[10px] uppercase tracking-wider text-[#A39184] font-medium">
+              <span className="text-[10px] uppercase tracking-wider text-[#A39184] font-medium block truncate">
                 Admin Control Panel
               </span>
             </div>
@@ -139,30 +175,27 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation links by Section */}
-        <nav className="p-3 space-y-4 flex-grow">
+        <nav className="p-3 space-y-4 flex-grow overflow-y-auto" aria-label="Admin Navigation">
           {navSections.map((section) => (
             <div key={section.title} className="space-y-1">
               <span className="text-[10px] uppercase font-bold tracking-wider text-[#C29B4D] px-3 block">
                 {section.title}
               </span>
               {section.items.map((item) => {
-                const isActive =
-                  item.href === '/admin'
-                    ? pathname === '/admin'
-                    : pathname.startsWith(item.href);
+                const active = isLinkActive(item.href);
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                      isActive
+                      active
                         ? 'bg-[#B95945] text-white shadow-xs font-semibold'
                         : 'text-[#D4C3B3] hover:bg-[#3D1E11] hover:text-white'
                     }`}
                   >
-                    <span className="text-sm">{item.icon}</span>
-                    <span>{item.name}</span>
+                    <span className="text-sm flex-shrink-0">{item.icon}</span>
+                    <span className="truncate">{item.name}</span>
                   </Link>
                 );
               })}
@@ -175,6 +208,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/"
             target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center justify-between text-xs text-[#D4C3B3] hover:text-white px-3 py-2 rounded-lg bg-[#2E160C] hover:bg-[#381A0E] transition-colors"
           >
             <span>View Public Website</span>
@@ -184,9 +218,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between px-2 pt-1 text-xs">
             <div className="truncate max-w-[130px]">
               <span className="text-[10px] text-[#A39184] block">Logged in:</span>
-              <span className="text-white font-medium truncate block">{userEmail || 'Admin'}</span>
+              <span className="text-white font-medium truncate block" title={userEmail || 'Admin'}>
+                {userEmail || 'Admin'}
+              </span>
             </div>
             <button
+              type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
               className="text-xs text-[#B95945] hover:text-[#E8A598] font-semibold transition-colors disabled:opacity-50 cursor-pointer"
@@ -197,58 +234,143 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile Top Bar */}
-      <div className="lg:hidden bg-[#2E160C] text-white p-4 flex items-center justify-between border-b border-[#432314] sticky top-0 z-40">
-        <Link href="/admin" className="flex items-center gap-2">
-          <HennaFloralMotif size={20} className="text-[#C29B4D]" />
-          <span className="font-serif-heading text-lg font-bold">Admin Panel</span>
+      {/* Mobile Top Bar (< lg screens) */}
+      <header className="lg:hidden bg-[#2E160C] text-white px-4 py-3 flex items-center justify-between border-b border-[#432314] flex-shrink-0 z-40 shadow-xs">
+        <Link href="/admin" className="flex items-center gap-2 min-w-0">
+          <div className="w-8 h-8 rounded-full bg-[#4E2714] flex items-center justify-center text-[#C29B4D] flex-shrink-0">
+            <HennaFloralMotif size={18} />
+          </div>
+          <div className="min-w-0">
+            <span className="font-serif-heading text-base font-bold truncate block leading-tight">
+              Admin Panel
+            </span>
+            <span className="text-[9px] uppercase tracking-wider text-[#A39184] font-medium block truncate">
+              Henna by Aayesha
+            </span>
+          </div>
         </Link>
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-1.5 text-[#D4C3B3] hover:text-white cursor-pointer"
-          aria-label="Toggle navigation"
+          type="button"
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          className="p-2 -mr-1 text-[#D4C3B3] hover:text-white rounded-lg hover:bg-[#3D1E11] transition-colors cursor-pointer"
+          aria-label={mobileMenuOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
+          aria-expanded={mobileMenuOpen}
         >
-          {mobileMenuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
+          {mobileMenuOpen ? <XIcon size={22} /> : <MenuIcon size={22} />}
         </button>
-      </div>
+      </header>
 
-      {/* Mobile Nav Drawer */}
+      {/* Mobile Sidebar Backdrop */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#25120A] text-[#F5ECE4] border-b border-[#432314] p-4 space-y-3 max-h-[80vh] overflow-y-auto">
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
+          onClick={closeMobileMenu}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Sidebar Drawer (< lg screens) */}
+      <div
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-[#2E160C] text-[#F5ECE4] shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mobile Navigation"
+      >
+        {/* Drawer Header */}
+        <div className="p-4 border-b border-[#432314] flex items-center justify-between flex-shrink-0 bg-[#25120A]">
+          <Link href="/admin" onClick={closeMobileMenu} className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-[#4E2714] flex items-center justify-center text-[#C29B4D] flex-shrink-0">
+              <HennaFloralMotif size={18} />
+            </div>
+            <div className="min-w-0">
+              <span className="font-serif-heading text-sm font-bold text-white block leading-tight truncate">
+                Henna by Aayesha
+              </span>
+              <span className="text-[9px] uppercase tracking-wider text-[#A39184] font-medium block truncate">
+                Control Panel
+              </span>
+            </div>
+          </Link>
+          <button
+            type="button"
+            onClick={closeMobileMenu}
+            className="p-1.5 rounded-lg text-[#D4C3B3] hover:text-white hover:bg-[#3D1E11] transition-colors cursor-pointer"
+            aria-label="Close navigation"
+          >
+            <XIcon size={20} />
+          </button>
+        </div>
+
+        {/* Drawer Navigation Links */}
+        <nav className="p-3 space-y-4 flex-1 overflow-y-auto" aria-label="Mobile Admin Navigation">
           {navSections.map((sec) => (
             <div key={sec.title} className="space-y-1">
-              <span className="text-[10px] uppercase font-bold text-[#C29B4D] px-2 block">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-[#C29B4D] px-2.5 block">
                 {sec.title}
               </span>
-              {sec.items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-[#D4C3B3] hover:bg-[#3D1E11] hover:text-white"
-                >
-                  <span>{item.icon}</span>
-                  <span>{item.name}</span>
-                </Link>
-              ))}
+              {sec.items.map((item) => {
+                const active = isLinkActive(item.href);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                      active
+                        ? 'bg-[#B95945] text-white shadow-xs font-semibold'
+                        : 'text-[#D4C3B3] hover:bg-[#3D1E11] hover:text-white'
+                    }`}
+                  >
+                    <span className="text-sm flex-shrink-0">{item.icon}</span>
+                    <span className="truncate">{item.name}</span>
+                  </Link>
+                );
+              })}
             </div>
           ))}
-          <div className="pt-3 border-t border-[#432314] flex items-center justify-between text-xs">
-            <Link href="/" target="_blank" className="text-[#C29B4D] hover:underline">
-              View Website →
-            </Link>
+        </nav>
+
+        {/* Drawer Bottom Footer */}
+        <div className="p-4 border-t border-[#432314] space-y-2.5 flex-shrink-0 bg-[#25120A]">
+          <Link
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={closeMobileMenu}
+            className="flex items-center justify-between text-xs text-[#D4C3B3] hover:text-white px-3 py-2 rounded-lg bg-[#2E160C] hover:bg-[#381A0E] transition-colors"
+          >
+            <span>View Public Website</span>
+            <ExternalLinkIcon size={14} />
+          </Link>
+
+          <div className="flex items-center justify-between px-2 pt-1 text-xs">
+            <div className="truncate max-w-[140px]">
+              <span className="text-[10px] text-[#A39184] block">Logged in:</span>
+              <span className="text-white font-medium truncate block" title={userEmail || 'Admin'}>
+                {userEmail || 'Admin'}
+              </span>
+            </div>
             <button
+              type="button"
               onClick={handleLogout}
-              className="text-[#B95945] font-semibold cursor-pointer"
+              disabled={isLoggingOut}
+              className="text-xs text-[#B95945] hover:text-[#E8A598] font-semibold transition-colors disabled:opacity-50 cursor-pointer"
             >
-              Sign out
+              {isLoggingOut ? 'Signing out...' : 'Sign out'}
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Main Content Area */}
-      <main id="main-content" className="flex-1 min-w-0 flex flex-col overflow-y-auto focus:outline-none" tabIndex={-1}>
+      <main
+        id="main-content"
+        className="flex-1 min-w-0 h-full overflow-y-auto focus:outline-none"
+        tabIndex={-1}
+      >
         {children}
       </main>
     </div>

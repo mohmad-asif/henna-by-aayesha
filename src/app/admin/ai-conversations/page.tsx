@@ -127,7 +127,12 @@ export default function AdminAiConversationsPage() {
   const handleSelectConversation = (conv: AiConversation) => {
     setSelectedConversationId(conv.id);
     setIsMobileDetailOpen(true);
-    setIsProfileOpen(true);
+    // On desktop (xl: 1280px+), open profile side-by-side; on mobile/tablet (< xl), keep profile closed so user sees the chat
+    if (typeof window !== 'undefined' && window.innerWidth >= 1280) {
+      setIsProfileOpen(true);
+    } else {
+      setIsProfileOpen(false);
+    }
     fetchDetail(conv.id, true);
   };
 
@@ -262,7 +267,7 @@ export default function AdminAiConversationsPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-60px)] lg:h-screen bg-[#F7F4EF] overflow-hidden">
+    <div className="flex flex-col h-full bg-[#F7F4EF] overflow-hidden">
       {/* Top Bar Header */}
       <header className="bg-white border-b border-[#E5D9CE] px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 flex-shrink-0 z-10">
         <div>
@@ -523,11 +528,11 @@ export default function AdminAiConversationsPage() {
           {selectedConversationId && selectedDetail ? (
             <>
               {/* Chat Thread Header */}
-              <div className="bg-white border-b border-[#E5D9CE] px-4 py-3 flex items-center justify-between flex-shrink-0 z-10 shadow-xs">
+              <div className="bg-white border-b border-[#E5D9CE] px-3.5 sm:px-4 py-2.5 sm:py-3 flex flex-col md:flex-row md:items-center justify-between gap-2.5 flex-shrink-0 z-10 shadow-xs">
                 {/* User / Visitor Identity */}
                 <div
                   onClick={() => setIsProfileOpen(true)}
-                  className="flex items-center gap-3 min-w-0 cursor-pointer group"
+                  className="flex items-center gap-2.5 sm:gap-3 min-w-0 cursor-pointer group flex-1"
                   title="Click to view full user profile & tracking details"
                 >
                   {/* Mobile Back Button */}
@@ -536,14 +541,14 @@ export default function AdminAiConversationsPage() {
                       e.stopPropagation();
                       setIsMobileDetailOpen(false);
                     }}
-                    className="lg:hidden p-1.5 rounded-lg border border-[#E5D9CE] text-[#4E2714] hover:bg-[#F7F4EF] mr-1"
+                    className="lg:hidden p-1.5 rounded-lg border border-[#E5D9CE] text-[#4E2714] hover:bg-[#F7F4EF] mr-0.5 flex-shrink-0 cursor-pointer"
                     title="Back to conversation list"
                   >
                     ←
                   </button>
 
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-[#4E2714] text-[#C29B4D] flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#4E2714] text-[#C29B4D] flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     {(
                       selectedDetail.user_name ||
                       selectedDetail.user_email ||
@@ -553,8 +558,8 @@ export default function AdminAiConversationsPage() {
                       .toUpperCase()}
                   </div>
 
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                       <h2 className="font-serif-heading font-bold text-sm lg:text-base text-[#261B16] truncate group-hover:text-[#B95945] transition-colors">
                         {selectedDetail.user_name ||
                           selectedDetail.user_email ||
@@ -563,7 +568,7 @@ export default function AdminAiConversationsPage() {
                             : 'Website Visitor')}
                       </h2>
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold tracking-wider ${
+                        className={`px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] uppercase font-semibold tracking-wider ${
                           selectedDetail.status === 'resolved'
                             ? 'bg-emerald-100 text-emerald-800'
                             : selectedDetail.status === 'archived'
@@ -576,31 +581,31 @@ export default function AdminAiConversationsPage() {
                     </div>
 
                     {/* Metadata Subheader */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-[#786052]">
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[10px] sm:text-[11px] text-[#786052]">
                       {selectedDetail.user_email && (
-                        <span>📧 {selectedDetail.user_email}</span>
+                        <span className="truncate max-w-[180px]">📧 {selectedDetail.user_email}</span>
                       )}
                       {selectedDetail.visitor_id && (
                         <span className="font-mono text-[10px]">
-                          Visitor: {selectedDetail.visitor_id.slice(0, 12)}...
+                          Visitor: #{selectedDetail.visitor_id.slice(-6)}
                         </span>
                       )}
                       <span>
                         Started: {new Date(selectedDetail.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                       <span>
-                        Total messages: {selectedDetail.messages.length}
+                        {selectedDetail.messages.length} msg{selectedDetail.messages.length === 1 ? '' : 's'}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Header Actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-between md:justify-end flex-shrink-0 pt-1 md:pt-0 border-t md:border-t-0 border-[#F0E5D8]">
                   {/* User Profile Toggle Button */}
                   <button
                     onClick={() => setIsProfileOpen((v) => !v)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+                    className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
                       isProfileOpen
                         ? 'border-[#B95945] bg-[#FAF3EE] text-[#B95945]'
                         : 'border-[#E5D9CE] bg-white text-[#4E2714] hover:bg-[#F7F4EF]'
@@ -608,8 +613,8 @@ export default function AdminAiConversationsPage() {
                     title={isProfileOpen ? 'Hide User Profile' : 'View User Profile Details'}
                   >
                     <span>👤</span>
-                    <span className="hidden sm:inline">
-                      {isProfileOpen ? 'Profile Details' : 'View Profile'}
+                    <span>
+                      {isProfileOpen ? 'Profile' : 'Profile'}
                     </span>
                   </button>
 
@@ -621,7 +626,7 @@ export default function AdminAiConversationsPage() {
                     }
                     disabled={actionLoading}
                     aria-label="Conversation status"
-                    className="text-xs px-2.5 py-1.5 rounded-lg border border-[#E5D9CE] bg-white text-[#261B16] focus:outline-none focus:border-[#B95945] cursor-pointer"
+                    className="text-xs px-2 py-1.5 rounded-lg border border-[#E5D9CE] bg-white text-[#261B16] focus:outline-none focus:border-[#B95945] cursor-pointer"
                   >
                     <option value="active">Active</option>
                     <option value="resolved">Resolved</option>
@@ -633,22 +638,23 @@ export default function AdminAiConversationsPage() {
                   <button
                     onClick={handleToggleUnread}
                     disabled={actionLoading}
-                    className="px-2.5 py-1.5 rounded-lg border border-[#E5D9CE] bg-white text-xs font-medium text-[#4E2714] hover:bg-[#F7F4EF] hover:border-[#B95945] transition-colors cursor-pointer"
+                    className="px-2 sm:px-2.5 py-1.5 rounded-lg border border-[#E5D9CE] bg-white text-xs font-medium text-[#4E2714] hover:bg-[#F7F4EF] hover:border-[#B95945] transition-colors cursor-pointer"
                     title={
                       selectedDetail.unread_by_admin
                         ? 'Mark as Read'
                         : 'Mark as Unread'
                     }
                   >
-                    {selectedDetail.unread_by_admin ? '✓ Mark Read' : '✉ Mark Unread'}
+                    {selectedDetail.unread_by_admin ? '✓ Read' : '✉ Unread'}
                   </button>
 
                   {/* Delete Conversation */}
                   <button
                     onClick={() => setDeleteModalOpen(true)}
                     disabled={actionLoading}
-                    className="p-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-xs"
+                    className="p-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-xs cursor-pointer"
                     title="Delete Conversation"
+                    aria-label="Delete Conversation"
                   >
                     🗑️
                   </button>
@@ -719,14 +725,14 @@ export default function AdminAiConversationsPage() {
 
                             {/* Message Bubble */}
                             <div
-                              className={`max-w-[88%] sm:max-w-[78%] rounded-2xl p-4 text-xs leading-relaxed shadow-xs ${
+                              className={`max-w-[90%] sm:max-w-[78%] rounded-2xl p-3.5 sm:p-4 text-xs leading-relaxed shadow-xs break-words [overflow-wrap:anywhere] ${
                                 isUser
                                   ? 'bg-[#2E160C] text-[#FDFBF7] rounded-tr-xs'
                                   : 'bg-white border border-[#E5D9CE] text-[#261B16] rounded-tl-xs'
                               }`}
                             >
                               {/* Message Text with preserved paragraphs */}
-                              <div className="whitespace-pre-wrap font-sans space-y-2">
+                              <div className="whitespace-pre-wrap font-sans space-y-2 break-words [overflow-wrap:anywhere]">
                                 {msg.content}
                               </div>
 
@@ -860,8 +866,8 @@ export default function AdminAiConversationsPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl border border-[#E5D9CE] max-w-md w-full p-5 shadow-xl space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-[#E5D9CE] max-w-md w-full p-5 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-2.5 text-red-600">
               <span className="text-xl">⚠️</span>
               <h3 className="font-bold text-sm text-[#261B16]">Delete Conversation</h3>

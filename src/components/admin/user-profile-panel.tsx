@@ -22,6 +22,16 @@ export function UserProfilePanel({
   const [showIpHistory, setShowIpHistory] = useState<boolean>(true);
   const [showUserAgent, setShowUserAgent] = useState<boolean>(false);
 
+  // Close drawer on Escape key
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const handleCopy = (key: string, value?: string | null) => {
     if (!value || value === 'Not available') return;
     navigator.clipboard.writeText(value);
@@ -95,7 +105,7 @@ export function UserProfilePanel({
 
       {/* Main Profile Panel Container */}
       <aside
-        className={`w-full sm:w-[380px] xl:w-[370px] 2xl:w-[410px] flex-shrink-0 flex flex-col bg-white border-l border-[#E5D9CE] z-50 xl:z-20 h-full overflow-hidden transition-all duration-200 ${
+        className={`w-full max-w-full sm:w-[380px] xl:w-[370px] 2xl:w-[410px] flex-shrink-0 flex flex-col bg-white border-l border-[#E5D9CE] z-50 xl:z-20 h-full overflow-hidden transition-all duration-200 ${
           /* On smaller screens, act as a fixed drawer. On large screens, act as an in-flow panel */
           'fixed inset-y-0 right-0 xl:static shadow-2xl xl:shadow-none'
         }`}
@@ -591,11 +601,11 @@ function ProfileField({
   const isAvailable = !isString || (value !== 'Not available' && value.trim().length > 0);
 
   return (
-    <div className="flex items-start justify-between gap-2 py-0.5 text-[11px]">
+    <div className="flex items-start justify-between gap-2 py-1 text-[11px]">
       <span className="text-[#786052] font-medium flex-shrink-0">{label}:</span>
       <div className="flex items-center gap-1.5 text-right min-w-0 flex-wrap justify-end">
         <span
-          className={`break-all ${mono ? 'font-mono text-[10px]' : ''} ${
+          className={`break-all [overflow-wrap:anywhere] ${mono ? 'font-mono text-[10px]' : ''} ${
             isAvailable ? 'text-[#261B16] font-semibold' : 'text-[#A39184] font-normal italic'
           }`}
         >
@@ -606,7 +616,7 @@ function ProfileField({
           <button
             type="button"
             onClick={onCopy}
-            className="p-0.5 text-[10px] text-[#786052] hover:text-[#B95945] rounded hover:bg-[#F2E8DC] transition-colors"
+            className="p-1 text-[10px] text-[#786052] hover:text-[#B95945] rounded hover:bg-[#F2E8DC] transition-colors cursor-pointer"
             title="Copy to clipboard"
             aria-label={`Copy ${label}`}
           >

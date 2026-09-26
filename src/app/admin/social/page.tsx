@@ -100,13 +100,13 @@ export default function AdminSocialLinksPage() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-4xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl w-full mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
         <span className="text-xs uppercase tracking-wider font-bold text-[#B95945]">
           Website Configuration
         </span>
-        <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
+        <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
           Social Media Links
         </h1>
         <p className="text-xs sm:text-sm text-[#703D24] mt-1">
@@ -126,7 +126,7 @@ export default function AdminSocialLinksPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EADFD3] shadow-xs space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-5 sm:p-8 border border-[#EADFD3] shadow-xs space-y-6">
         <div className="border-b border-[#F0E5D8] pb-3">
           <h2 className="font-serif-heading text-xl font-semibold text-[#261B16]">
             Connected Channels
@@ -151,7 +151,7 @@ export default function AdminSocialLinksPage() {
                     type="checkbox"
                     checked={item.enabled}
                     onChange={() => handleToggleEnabled(item.platform)}
-                    className="w-4 h-4 rounded text-[#B95945] focus:ring-[#B95945]"
+                    className="w-4 h-4 rounded text-[#4E2714] focus:ring-[#4E2714]"
                     id={`soc-${item.platform}`}
                   />
                   <div>
@@ -164,7 +164,7 @@ export default function AdminSocialLinksPage() {
                   </div>
                 </div>
 
-                <div className="flex-1 max-w-md">
+                <div className="w-full sm:flex-1 sm:max-w-md">
                   <input
                     type="text"
                     value={item.url}
@@ -174,11 +174,11 @@ export default function AdminSocialLinksPage() {
                         ? 'https://instagram.com/henna_by_aayesha or @henna_by_aayesha'
                         : `https://${item.platform.toLowerCase()}.com/yourhandle`
                     }
-                    className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-[#EADFD3] bg-white focus:outline-none focus:border-[#B95945]"
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-[#EADFD3] bg-white focus:outline-none focus:border-[#4E2714]"
                   />
                 </div>
 
-                <div className="flex items-center gap-2 self-end sm:self-auto">
+                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                   <span className="text-xs text-[#703D24] font-medium">Order:</span>
                   <input
                     type="number"
@@ -187,18 +187,18 @@ export default function AdminSocialLinksPage() {
                     onChange={(e) =>
                       handleOrderChange(item.platform, parseInt(e.target.value, 10) || 1)
                     }
-                    className="w-16 px-2 py-1 text-xs text-center rounded-lg border border-[#EADFD3] bg-white focus:outline-none focus:border-[#B95945]"
+                    className="w-16 px-2 py-1 text-xs text-center rounded-lg border border-[#EADFD3] bg-white focus:outline-none focus:border-[#4E2714]"
                   />
                 </div>
               </div>
             ))}
         </div>
 
-        <div className="flex items-center justify-end gap-4 pt-4 border-t border-[#EADFD3]">
+        <div className="flex items-center justify-end pt-4 border-t border-[#EADFD3]">
           <button
             type="submit"
             disabled={saving}
-            className="px-8 py-3 rounded-full bg-[#B95945] text-white text-xs sm:text-sm font-semibold hover:bg-[#A04533] transition-colors shadow-xs disabled:opacity-50"
+            className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[#4E2714] text-white text-xs sm:text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md disabled:opacity-50 cursor-pointer text-center"
           >
             {saving ? 'Saving changes...' : 'Save Social Links'}
           </button>

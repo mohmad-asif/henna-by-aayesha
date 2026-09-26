@@ -205,13 +205,13 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-4xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl w-full mx-auto space-y-6 sm:space-y-8">
       {/* Page Header */}
       <div>
         <span className="text-xs uppercase tracking-wider font-bold text-[#B95945]">
           Global Configuration • Single Source of Truth
         </span>
-        <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
+        <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
           Site & Location Settings
         </h1>
         <p className="text-xs sm:text-sm text-[#703D24] mt-1">
@@ -648,11 +648,11 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* Submit Button */}
-        <div className="pt-4 border-t border-[#F0E5D8] flex items-center justify-end gap-4">
+        <div className="pt-4 border-t border-[#F0E5D8] flex items-center justify-end">
           <button
             type="submit"
             disabled={saving}
-            className="px-8 py-3 rounded-xl bg-[#4E2714] text-white text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+            className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[#4E2714] text-white text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
             {saving ? (
               <>

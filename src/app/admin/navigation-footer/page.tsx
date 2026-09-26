@@ -98,13 +98,13 @@ export default function AdminNavigationFooterPage() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-4xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl w-full mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
         <span className="text-xs uppercase tracking-wider font-bold text-[#B95945]">
           Website Configuration
         </span>
-        <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
+        <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
           Navigation & Footer
         </h1>
         <p className="text-xs sm:text-sm text-[#703D24] mt-1">
@@ -144,30 +144,30 @@ export default function AdminNavigationFooterPage() {
                   key={item.id}
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-[#EADFD3] bg-[#FDFBF7]"
                 >
-                  <div className="flex items-center gap-3 flex-1">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     <input
                       type="checkbox"
                       checked={item.enabled}
                       onChange={() => handleToggleNavEnabled(item.id)}
-                      className="w-4 h-4 rounded text-[#B95945] focus:ring-[#B95945]"
+                      className="w-4 h-4 rounded text-[#4E2714] focus:ring-[#4E2714] shrink-0"
                       id={`nav-check-${item.id}`}
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
                         <input
                           type="text"
                           value={item.label}
                           onChange={(e) => handleNavLabelChange(item.id, e.target.value)}
-                          className="px-2.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-[#EADFD3] bg-white focus:outline-none focus:border-[#B95945]"
+                          className="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg border border-[#EADFD3] bg-white focus:outline-none focus:border-[#4E2714] min-w-[120px]"
                         />
-                        <code className="text-[11px] text-[#A39184] bg-white px-2 py-1 rounded border border-[#EADFD3]">
+                        <code className="text-[11px] text-[#A39184] bg-white px-2 py-1 rounded border border-[#EADFD3] font-mono break-all">
                           {item.url}
                         </code>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                     <span className="text-xs text-[#703D24] font-medium">Order:</span>
                     <input
                       type="number"
@@ -176,7 +176,7 @@ export default function AdminNavigationFooterPage() {
                       onChange={(e) =>
                         handleNavOrderChange(item.id, parseInt(e.target.value, 10) || 1)
                       }
-                      className="w-16 px-2 py-1 text-xs text-center rounded-lg border border-[#EADFD3] bg-white focus:outline-none focus:border-[#B95945]"
+                      className="w-16 px-2 py-1 text-xs text-center rounded-lg border border-[#EADFD3] bg-white focus:outline-none focus:border-[#4E2714]"
                     />
                   </div>
                 </div>
@@ -228,11 +228,11 @@ export default function AdminNavigationFooterPage() {
         </div>
 
         {/* Save Bar */}
-        <div className="flex items-center justify-end gap-4 pt-4 border-t border-[#EADFD3]">
+        <div className="flex items-center justify-end pt-4 border-t border-[#EADFD3]">
           <button
             type="submit"
             disabled={saving}
-            className="px-8 py-3 rounded-full bg-[#B95945] text-white text-xs sm:text-sm font-semibold hover:bg-[#A04533] transition-colors shadow-xs disabled:opacity-50"
+            className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[#4E2714] text-white text-xs sm:text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md disabled:opacity-50 cursor-pointer text-center"
           >
             {saving ? 'Saving changes...' : 'Save Navigation & Footer'}
           </button>

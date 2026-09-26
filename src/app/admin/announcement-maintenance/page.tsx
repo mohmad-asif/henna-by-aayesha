@@ -80,13 +80,13 @@ export default function AdminAnnouncementMaintenancePage() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-4xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl w-full mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
         <span className="text-xs uppercase tracking-wider font-bold text-[#B95945]">
           Website Controls
         </span>
-        <h1 className="font-serif-heading text-3xl sm:text-4xl font-semibold text-[#261B16] mt-1">
+        <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
           Promo Bar & Maintenance Mode
         </h1>
         <p className="text-xs sm:text-sm text-[#703D24] mt-1">
@@ -239,11 +239,11 @@ export default function AdminAnnouncementMaintenancePage() {
         </div>
 
         {/* Save Bar */}
-        <div className="flex items-center justify-end gap-4 pt-4 border-t border-[#EADFD3]">
+        <div className="flex items-center justify-end pt-4 border-t border-[#EADFD3]">
           <button
             type="submit"
             disabled={saving}
-            className="px-8 py-3 rounded-full bg-[#B95945] text-white text-xs sm:text-sm font-semibold hover:bg-[#A04533] transition-colors shadow-xs disabled:opacity-50"
+            className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[#4E2714] text-white text-xs sm:text-sm font-semibold hover:bg-[#381A0E] transition-all shadow-md disabled:opacity-50 cursor-pointer text-center"
           >
             {saving ? 'Saving changes...' : 'Save Settings'}
           </button>

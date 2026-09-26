@@ -75,9 +75,9 @@ export default function LiveVisitorsPage() {
   }, [isPolling, fetchLive]);
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EADBCE]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl">🟢</span>
@@ -95,14 +95,14 @@ export default function LiveVisitorsPage() {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-2.5 text-xs">
-          <span className="text-[#847269] hidden sm:inline">
+        <div className="flex flex-wrap items-center gap-2.5 text-xs">
+          <span className="text-[#847269] hidden md:inline">
             Updated: {lastRefreshed}
           </span>
           <button
             type="button"
             onClick={() => setIsPolling(!isPolling)}
-            className={`px-3.5 py-1.5 rounded-xl font-medium border transition-colors cursor-pointer ${
+            className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl font-medium border transition-colors cursor-pointer text-center ${
               isPolling
                 ? 'bg-[#FAF3EE] text-[#4E2714] border-[#D6C1AF] hover:bg-[#F2ECE4]'
                 : 'bg-white text-[#847269] border-[#EADFD3] hover:text-[#261B16]'
@@ -113,7 +113,7 @@ export default function LiveVisitorsPage() {
           <button
             type="button"
             onClick={fetchLive}
-            className="px-3.5 py-1.5 rounded-xl font-semibold bg-[#4E2714] text-white hover:bg-[#381A0E] transition-colors cursor-pointer"
+            className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl font-semibold bg-[#4E2714] text-white hover:bg-[#381A0E] transition-colors cursor-pointer text-center"
           >
             Refresh Now
           </button>
@@ -172,8 +172,8 @@ export default function LiveVisitorsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#FAF6F0] text-[#703D24] uppercase text-[10px] tracking-wider font-semibold border-b border-[#EADFD3]">
+            <table className="w-full text-left text-xs min-w-[760px]">
+              <thead className="bg-[#FAF6F0] text-[#703D24] uppercase text-[10px] tracking-wider font-semibold border-b border-[#EADFD3] whitespace-nowrap">
                 <tr>
                   <th className="py-3 px-4">Visitor</th>
                   <th className="py-3 px-4">IP Address</th>

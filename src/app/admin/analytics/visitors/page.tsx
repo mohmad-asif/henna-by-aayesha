@@ -126,7 +126,7 @@ export default function VisitorsListPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -148,7 +148,7 @@ export default function VisitorsListPage() {
           type="button"
           onClick={handleExportCsv}
           disabled={isExporting}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-[#4E2714] border border-[#D6C1AF] hover:bg-[#FAF6F0] transition-colors cursor-pointer self-start sm:self-auto disabled:opacity-50"
+          className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-[#4E2714] border border-[#D6C1AF] hover:bg-[#FAF6F0] transition-colors cursor-pointer w-full sm:w-auto disabled:opacity-50"
         >
           <span>📥</span>
           <span>{isExporting ? 'Exporting...' : 'Export Visitors CSV'}</span>
@@ -157,9 +157,9 @@ export default function VisitorsListPage() {
 
       {/* Filter and Search Bar */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#EADFD3] shadow-xs space-y-4">
-        <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-3">
+        <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           {/* Search Input */}
-          <div className="flex-1 min-w-[240px]">
+          <div className="flex-1 min-w-[220px] w-full sm:w-auto">
             <input
               type="text"
               value={search}
@@ -176,7 +176,7 @@ export default function VisitorsListPage() {
               setDevice(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-2 rounded-xl border border-[#D6C1AF] text-xs text-[#261B16] bg-white focus:outline-none focus:ring-2 focus:ring-[#C29B4D]"
+            className="w-full sm:w-auto px-3 py-2 rounded-xl border border-[#D6C1AF] text-xs text-[#261B16] bg-white focus:outline-none focus:ring-2 focus:ring-[#C29B4D] cursor-pointer"
           >
             <option value="all">All Devices</option>
             <option value="mobile">Mobile Phones</option>
@@ -191,7 +191,7 @@ export default function VisitorsListPage() {
               setLocation(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-2 rounded-xl border border-[#D6C1AF] text-xs text-[#261B16] bg-white focus:outline-none focus:ring-2 focus:ring-[#C29B4D]"
+            className="w-full sm:w-auto px-3 py-2 rounded-xl border border-[#D6C1AF] text-xs text-[#261B16] bg-white focus:outline-none focus:ring-2 focus:ring-[#C29B4D] cursor-pointer"
           >
             <option value="all">All Locations</option>
             <option value="Bengaluru">Bengaluru / Bangalore</option>
@@ -208,7 +208,7 @@ export default function VisitorsListPage() {
               setSortOrder(ord as 'asc' | 'desc');
               setPage(1);
             }}
-            className="px-3 py-2 rounded-xl border border-[#D6C1AF] text-xs text-[#261B16] bg-white focus:outline-none focus:ring-2 focus:ring-[#C29B4D]"
+            className="w-full sm:w-auto px-3 py-2 rounded-xl border border-[#D6C1AF] text-xs text-[#261B16] bg-white focus:outline-none focus:ring-2 focus:ring-[#C29B4D] cursor-pointer"
           >
             <option value="last_active_at_desc">Latest Activity</option>
             <option value="first_visit_at_desc">Newest Visitors</option>
@@ -216,22 +216,24 @@ export default function VisitorsListPage() {
             <option value="page_views_count_desc">Most Page Views</option>
           </select>
 
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-xl bg-[#4E2714] text-white text-xs font-semibold hover:bg-[#381A0E] cursor-pointer"
-          >
-            Search
-          </button>
-
-          {(search || device !== 'all' || location !== 'all' || startDate || endDate) && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
-              type="button"
-              onClick={handleResetFilters}
-              className="px-3 py-2 rounded-xl text-xs text-[#847269] hover:text-[#261B16]"
+              type="submit"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-[#4E2714] text-white text-xs font-semibold hover:bg-[#381A0E] cursor-pointer"
             >
-              Reset
+              Search
             </button>
-          )}
+
+            {(search || device !== 'all' || location !== 'all' || startDate || endDate) && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="px-3 py-2 rounded-xl text-xs text-[#847269] hover:text-[#261B16] cursor-pointer"
+              >
+                Reset
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -253,34 +255,34 @@ export default function VisitorsListPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[700px]">
               <thead className="bg-[#FAF6F0] text-[#703D24] uppercase text-[10px] tracking-wider font-semibold border-b border-[#EADFD3]">
                 <tr>
-                  <th className="py-3.5 px-4">Visitor ID</th>
-                  <th className="py-3.5 px-4">IP Address</th>
-                  <th className="py-3.5 px-4">First Visit</th>
-                  <th className="py-3.5 px-4">Last Activity</th>
-                  <th className="py-3.5 px-4">Visits</th>
-                  <th className="py-3.5 px-4">Pages</th>
-                  <th className="py-3.5 px-4">Device & OS</th>
-                  <th className="py-3.5 px-4">Approx. Location</th>
-                  <th className="py-3.5 px-4">Referrer</th>
-                  <th className="py-3.5 px-4">Last Page</th>
-                  <th className="py-3.5 px-4 text-right">Profile</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Visitor ID</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">IP Address</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">First Visit</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Last Activity</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Visits</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Pages</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Device & OS</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Approx. Location</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Referrer</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Last Page</th>
+                  <th className="py-3.5 px-4 text-right whitespace-nowrap">Profile</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F0E5D8]">
                 {visitors.map((v) => (
                   <tr key={v.visitor_id} className="hover:bg-[#FAF6F0] transition-colors">
                     {/* Visitor ID */}
-                    <td className="py-3 px-4 font-mono text-[11px] text-[#4E2714]">
+                    <td className="py-3 px-4 font-mono text-[11px] text-[#4E2714] whitespace-nowrap">
                       <span title={v.visitor_id}>
                         {v.visitor_id.substring(0, 8)}...
                       </span>
                     </td>
 
                     {/* IP Address */}
-                    <td className="py-3 px-4 text-[#261B16]">
+                    <td className="py-3 px-4 text-[#261B16] whitespace-nowrap">
                       {v.ip_address ? (
                         <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-[#FAF3EE] text-[#4E2714] border border-[#EADBCE] inline-block font-medium">
                           {v.ip_address}
@@ -291,29 +293,29 @@ export default function VisitorsListPage() {
                     </td>
 
                     {/* First Visit */}
-                    <td className="py-3 px-4 text-[#703D24]">
+                    <td className="py-3 px-4 text-[#703D24] whitespace-nowrap">
                       {formatDate(v.first_visit_at)}
                     </td>
 
                     {/* Last Activity */}
-                    <td className="py-3 px-4 font-medium text-[#261B16]">
+                    <td className="py-3 px-4 font-medium text-[#261B16] whitespace-nowrap">
                       {formatRelative(v.last_active_at)}
                     </td>
 
                     {/* Visit Count */}
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <span className="px-2 py-0.5 rounded-full bg-[#FAF3EE] text-[#4E2714] font-semibold text-[11px]">
                         {v.visit_count}
                       </span>
                     </td>
 
                     {/* Page Views */}
-                    <td className="py-3 px-4 text-[#261B16] font-medium">
+                    <td className="py-3 px-4 text-[#261B16] font-medium whitespace-nowrap">
                       {v.page_views_count}
                     </td>
 
                     {/* Device / OS */}
-                    <td className="py-3 px-4 text-[#703D24]">
+                    <td className="py-3 px-4 text-[#703D24] whitespace-nowrap">
                       <div className="flex flex-col">
                         <span className="font-semibold text-[#261B16] capitalize">
                           {v.device_type} · {v.browser}
@@ -342,7 +344,7 @@ export default function VisitorsListPage() {
                     </td>
 
                     {/* Action */}
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3 px-4 text-right whitespace-nowrap">
                       <Link
                         href={`/admin/analytics/visitors/${v.visitor_id}`}
                         className="px-2.5 py-1 rounded-lg text-xs font-semibold text-[#B95945] hover:bg-[#FAF3EE] transition-colors"
@@ -359,7 +361,7 @@ export default function VisitorsListPage() {
 
         {/* Pagination Bar */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-[#F0E5D8] flex items-center justify-between text-xs text-[#847269]">
+          <div className="p-4 border-t border-[#F0E5D8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#847269]">
             <span>
               Page <strong>{page}</strong> of <strong>{totalPages}</strong> ({total} visitors total)
             </span>
