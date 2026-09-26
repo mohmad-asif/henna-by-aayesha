@@ -490,10 +490,6 @@ export default function AdminAISettingsPage() {
           <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
             AI Settings
           </h1>
-          <p className="text-xs sm:text-sm text-[#703D24] mt-1 max-w-3xl">
-            Configure multi-provider chat routing, Supabase pgvector embeddings, and knowledge base
-            indexing.
-          </p>
         </div>
 
         <button

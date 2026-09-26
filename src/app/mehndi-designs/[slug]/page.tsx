@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!design) {
     return {
-      title: `Design Not Found | ${settings.name} ${city}`,
+      title: 'Design Not Found',
     };
   }
 
@@ -333,3 +333,5 @@ export default async function DesignDetailPage({ params }: Props) {
     </div>
   );
 }
+
+

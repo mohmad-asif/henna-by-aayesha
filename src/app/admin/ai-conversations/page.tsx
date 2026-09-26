@@ -19,7 +19,7 @@ export default function AdminAiConversationsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'resolved' | 'closed' | 'archived'>('all');
   const [unreadOnly, setUnreadOnly] = useState<boolean>(false);
-  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'messages'>('latest');
+  const [sortBy] = useState<'latest' | 'oldest' | 'messages'>('latest');
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
 
@@ -50,7 +50,7 @@ export default function AdminAiConversationsPage() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Fetch conversations list
+  // Fetch conversations list (for manual refresh)
   const fetchConversations = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoadingList(true);
     setErrorList(null);
@@ -90,9 +90,56 @@ export default function AdminAiConversationsPage() {
     }
   }, [page, debouncedSearch, statusFilter, unreadOnly, sortBy]);
 
+  // Initial load and filter change
   useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+    let ignore = false;
+    async function loadData() {
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: '30',
+          sortBy,
+        });
+
+        if (debouncedSearch.trim()) {
+          params.append('search', debouncedSearch.trim());
+        }
+        if (statusFilter !== 'all') {
+          params.append('status', statusFilter);
+        }
+        if (unreadOnly) {
+          params.append('unreadOnly', 'true');
+        }
+
+        const res = await fetch(`/api/admin/ai/conversations?${params.toString()}`);
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to load conversations');
+        }
+
+        const data = await res.json();
+        if (!ignore) {
+          setConversations(data.conversations || []);
+          setTotalConversations(data.total || 0);
+          setTotalPages(data.totalPages || 1);
+        }
+      } catch (err: unknown) {
+        if (!ignore) {
+          const message = err instanceof Error ? err.message : 'Unknown error';
+          setErrorList(message);
+        }
+      } finally {
+        if (!ignore) {
+          setLoadingList(false);
+        }
+      }
+    }
+
+    loadData();
+    return () => {
+      ignore = true;
+    };
+  }, [page, debouncedSearch, statusFilter, unreadOnly, sortBy]);
 
   // Fetch conversation detail
   const fetchDetail = useCallback(async (conversationId: string, markRead = true) => {
@@ -279,9 +326,6 @@ export default function AdminAiConversationsPage() {
               {totalConversations} {totalConversations === 1 ? 'chat' : 'chats'}
             </span>
           </div>
-          <p className="text-xs text-[#786052] hidden sm:block">
-            Inspect real-time conversations, user queries, recommendations, and AI assistant responses.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -309,9 +353,8 @@ export default function AdminAiConversationsPage() {
         {/* LEFT SIDEBAR: Conversation List                          */}
         {/* ======================================================== */}
         <aside
-          className={`w-full lg:w-72 xl:w-80 flex-shrink-0 flex flex-col bg-white border-r border-[#E5D9CE] z-20 transition-all duration-200 ${
-            isMobileDetailOpen ? 'hidden lg:flex' : 'flex'
-          }`}
+          className={`w-full lg:w-72 xl:w-80 flex-shrink-0 flex flex-col bg-white border-r border-[#E5D9CE] z-20 transition-all duration-200 ${isMobileDetailOpen ? 'hidden lg:flex' : 'flex'
+            }`}
         >
           {/* Search & Filters Header */}
           <div className="p-3 border-b border-[#E5D9CE] bg-[#FDFBF7] space-y-2.5 flex-shrink-0">
@@ -345,11 +388,10 @@ export default function AdminAiConversationsPage() {
                       setStatusFilter(st);
                       setPage(1);
                     }}
-                    className={`px-2 py-0.5 rounded-md font-medium capitalize transition-colors ${
-                      statusFilter === st
-                        ? 'bg-white text-[#4E2714] shadow-xs'
-                        : 'text-[#786052] hover:text-[#261B16]'
-                    }`}
+                    className={`px-2 py-0.5 rounded-md font-medium capitalize transition-colors ${statusFilter === st
+                      ? 'bg-white text-[#4E2714] shadow-xs'
+                      : 'text-[#786052] hover:text-[#261B16]'
+                      }`}
                   >
                     {st}
                   </button>
@@ -361,11 +403,10 @@ export default function AdminAiConversationsPage() {
                   setUnreadOnly(!unreadOnly);
                   setPage(1);
                 }}
-                className={`px-2 py-1 rounded-md border flex items-center gap-1 font-medium transition-colors ${
-                  unreadOnly
-                    ? 'bg-[#B95945] text-white border-[#B95945]'
-                    : 'bg-white text-[#786052] border-[#E5D9CE] hover:border-[#B95945]'
-                }`}
+                className={`px-2 py-1 rounded-md border flex items-center gap-1 font-medium transition-colors ${unreadOnly
+                  ? 'bg-[#B95945] text-white border-[#B95945]'
+                  : 'bg-white text-[#786052] border-[#E5D9CE] hover:border-[#B95945]'
+                  }`}
                 title="Filter only unread conversations"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
@@ -416,21 +457,19 @@ export default function AdminAiConversationsPage() {
                   <div
                     key={conv.id}
                     onClick={() => handleSelectConversation(conv)}
-                    className={`p-3.5 cursor-pointer transition-all border-l-4 ${
-                      isSelected
-                        ? 'bg-[#F9F5F0] border-l-[#B95945]'
-                        : 'border-l-transparent hover:bg-[#FAF7F2]'
-                    } ${conv.unread_by_admin ? 'bg-amber-50/40' : ''}`}
+                    className={`p-3.5 cursor-pointer transition-all border-l-4 ${isSelected
+                      ? 'bg-[#F9F5F0] border-l-[#B95945]'
+                      : 'border-l-transparent hover:bg-[#FAF7F2]'
+                      } ${conv.unread_by_admin ? 'bg-amber-50/40' : ''}`}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2 min-w-0">
                         {/* Avatar */}
                         <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                            conv.user_email
-                              ? 'bg-[#4E2714] text-[#C29B4D]'
-                              : 'bg-[#E5D9CE] text-[#4E2714]'
-                          }`}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${conv.user_email
+                            ? 'bg-[#4E2714] text-[#C29B4D]'
+                            : 'bg-[#E5D9CE] text-[#4E2714]'
+                            }`}
                         >
                           {displayName.charAt(0).toUpperCase()}
                         </div>
@@ -465,13 +504,12 @@ export default function AdminAiConversationsPage() {
                     <div className="flex items-center justify-between pl-9 mt-1.5 text-[10px]">
                       <div className="flex items-center gap-1.5">
                         <span
-                          className={`px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-semibold ${
-                            conv.status === 'resolved'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : conv.status === 'archived'
+                          className={`px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-semibold ${conv.status === 'resolved'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : conv.status === 'archived'
                               ? 'bg-gray-100 text-gray-700'
                               : 'bg-blue-50 text-blue-700'
-                          }`}
+                            }`}
                         >
                           {conv.status}
                         </span>
@@ -521,9 +559,8 @@ export default function AdminAiConversationsPage() {
         {/* RIGHT CHAT BOX: Active Conversation Thread               */}
         {/* ======================================================== */}
         <section
-          className={`flex-1 flex flex-col bg-[#FAF8F5] relative transition-all duration-200 overflow-hidden ${
-            !isMobileDetailOpen ? 'hidden lg:flex' : 'flex'
-          }`}
+          className={`flex-1 flex flex-col bg-[#FAF8F5] relative transition-all duration-200 overflow-hidden ${!isMobileDetailOpen ? 'hidden lg:flex' : 'flex'
+            }`}
         >
           {selectedConversationId && selectedDetail ? (
             <>
@@ -568,13 +605,12 @@ export default function AdminAiConversationsPage() {
                             : 'Website Visitor')}
                       </h2>
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] uppercase font-semibold tracking-wider ${
-                          selectedDetail.status === 'resolved'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : selectedDetail.status === 'archived'
+                        className={`px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] uppercase font-semibold tracking-wider ${selectedDetail.status === 'resolved'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : selectedDetail.status === 'archived'
                             ? 'bg-gray-100 text-gray-700'
                             : 'bg-blue-50 text-blue-700'
-                        }`}
+                          }`}
                       >
                         {selectedDetail.status}
                       </span>
@@ -605,11 +641,10 @@ export default function AdminAiConversationsPage() {
                   {/* User Profile Toggle Button */}
                   <button
                     onClick={() => setIsProfileOpen((v) => !v)}
-                    className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
-                      isProfileOpen
-                        ? 'border-[#B95945] bg-[#FAF3EE] text-[#B95945]'
-                        : 'border-[#E5D9CE] bg-white text-[#4E2714] hover:bg-[#F7F4EF]'
-                    }`}
+                    className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${isProfileOpen
+                      ? 'border-[#B95945] bg-[#FAF3EE] text-[#B95945]'
+                      : 'border-[#E5D9CE] bg-white text-[#4E2714] hover:bg-[#F7F4EF]'
+                      }`}
                     title={isProfileOpen ? 'Hide User Profile' : 'View User Profile Details'}
                   >
                     <span>👤</span>
@@ -725,11 +760,10 @@ export default function AdminAiConversationsPage() {
 
                             {/* Message Bubble */}
                             <div
-                              className={`max-w-[90%] sm:max-w-[78%] rounded-2xl p-3.5 sm:p-4 text-xs leading-relaxed shadow-xs break-words [overflow-wrap:anywhere] ${
-                                isUser
-                                  ? 'bg-[#2E160C] text-[#FDFBF7] rounded-tr-xs'
-                                  : 'bg-white border border-[#E5D9CE] text-[#261B16] rounded-tl-xs'
-                              }`}
+                              className={`max-w-[90%] sm:max-w-[78%] rounded-2xl p-3.5 sm:p-4 text-xs leading-relaxed shadow-xs break-words [overflow-wrap:anywhere] ${isUser
+                                ? 'bg-[#2E160C] text-[#FDFBF7] rounded-tr-xs'
+                                : 'bg-white border border-[#E5D9CE] text-[#261B16] rounded-tl-xs'
+                                }`}
                             >
                               {/* Message Text with preserved paragraphs */}
                               <div className="whitespace-pre-wrap font-sans space-y-2 break-words [overflow-wrap:anywhere]">

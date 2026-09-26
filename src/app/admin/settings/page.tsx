@@ -167,7 +167,7 @@ export default function AdminSettingsPage() {
       } else {
         setStatusMsg({
           type: 'success',
-          text: 'Settings and location configuration updated successfully! Public website cache revalidated.',
+          text: 'Settings and location configuration updated successfully!',
         });
         if (resData.settings) {
           setFormData(resData.settings);
@@ -214,18 +214,14 @@ export default function AdminSettingsPage() {
         <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
           Site & Location Settings
         </h1>
-        <p className="text-xs sm:text-sm text-[#703D24] mt-1">
-          Updating your contact details or service city here immediately updates every CTA, button, card, header, footer, LocalBusiness schema, and AI assistant across the public website.
-        </p>
       </div>
 
       {statusMsg && (
         <div
-          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
-            statusMsg.type === 'success'
-              ? 'bg-[#EAFBF0] border-[#D0F4DE] text-[#1EBE5D]'
-              : 'bg-[#FDF2F2] border-[#F8D7DA] text-[#9B2C2C]'
-          }`}
+          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${statusMsg.type === 'success'
+            ? 'bg-[#EAFBF0] border-[#D0F4DE] text-[#1EBE5D]'
+            : 'bg-[#FDF2F2] border-[#F8D7DA] text-[#9B2C2C]'
+            }`}
         >
           <strong>{statusMsg.type === 'success' ? 'Success:' : 'Note:'}</strong> {statusMsg.text}
         </div>

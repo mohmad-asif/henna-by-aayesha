@@ -93,18 +93,14 @@ export default function AdminHomepageConfigPage() {
         <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
           Homepage & Hero Section
         </h1>
-        <p className="text-xs sm:text-sm text-[#703D24] mt-1">
-          Customize the homepage hero banner messaging, CTAs, hero photo, and easily toggle visible sections.
-        </p>
       </div>
 
       {statusMsg && (
         <div
-          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
-            statusMsg.type === 'success'
+          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${statusMsg.type === 'success'
               ? 'bg-[#EAFBF0] border-[#D0F4DE] text-[#1EBE5D]'
               : 'bg-[#FDF2F2] border-[#F8D7DA] text-[#9B2C2C]'
-          }`}
+            }`}
         >
           {statusMsg.text}
         </div>
@@ -136,11 +132,10 @@ export default function AdminHomepageConfigPage() {
             ].map((sec) => (
               <label
                 key={sec.key}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-                  sections[sec.key]
+                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${sections[sec.key]
                     ? 'border-[#B95945]/40 bg-[#FDFBF7]'
                     : 'border-[#EADFD3] bg-[#F9F7F4] opacity-70'
-                }`}
+                  }`}
               >
                 <input
                   type="checkbox"

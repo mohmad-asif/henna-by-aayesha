@@ -3,7 +3,6 @@ export const revalidate = 0;
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAdminAuth } from '@/lib/auth/admin-api';
-import { getAdminSupabaseClient } from '@/lib/supabase/service-role';
 import {
   encryptApiKey,
   decryptApiKey,

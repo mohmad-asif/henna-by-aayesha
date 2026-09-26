@@ -65,6 +65,8 @@ export function AIDesignAssistantClient({ settings }: { settings?: SiteConfig })
   const city = currentConfig.location?.city || currentConfig.contact.city || 'Bengaluru';
   const promptCategories = useMemo(() => getPromptCategories(city), [city]);
 
+  const STORAGE_CONV_KEY = 'hba_ai_conversation_id';
+  const [conversationId, setConversationId] = useState<string>('');
   const [messages, setMessages] = useState<MessageItem[]>(() => [
     {
       id: 'welcome-msg',
@@ -75,9 +77,98 @@ export function AIDesignAssistantClient({ settings }: { settings?: SiteConfig })
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Restore active conversation from localStorage & Supabase across page reloads
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let activeId = localStorage.getItem(STORAGE_CONV_KEY);
+    if (!activeId) {
+      activeId = crypto.randomUUID();
+      try {
+        localStorage.setItem(STORAGE_CONV_KEY, activeId);
+      } catch {
+        // storage restricted
+      }
+    }
+    setConversationId(activeId);
+
+    // 1. Immediately load cached messages for this conversation if available
+    try {
+      const cachedRaw = localStorage.getItem(`hba_ai_msgs_${activeId}`);
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw);
+        if (Array.isArray(cached) && cached.length > 0) {
+          setMessages(cached);
+          setHasInteracted(cached.length > 1);
+        }
+      }
+    } catch {
+      // ignore JSON parse error
+    }
+
+    // 2. Fetch existing messages from Supabase for this conversation
+    fetch(`/api/ai/chat/history?conversationId=${encodeURIComponent(activeId)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          const restored: MessageItem[] = data.messages.map(
+            (
+              m: {
+                id?: string;
+                role: 'user' | 'assistant';
+                content: string;
+                action?: ChatAction;
+                recommendations?: RecommendedDesign[];
+                follow_up_question?: string | null;
+                created_at?: string;
+              },
+              idx: number
+            ) => {
+              const date = m.created_at ? new Date(m.created_at) : new Date();
+              const hours = date.getHours().toString().padStart(2, '0');
+              const minutes = date.getMinutes().toString().padStart(2, '0');
+              return {
+                id: m.id || `restored-${idx}`,
+                role: m.role,
+                content: m.content,
+                action: m.action,
+                recommendations: m.recommendations,
+                followUpQuestion: m.follow_up_question,
+                timestamp: `${hours}:${minutes}`,
+              };
+            }
+          );
+
+          setMessages(restored);
+          setHasInteracted(true);
+          try {
+            localStorage.setItem(`hba_ai_msgs_${activeId}`, JSON.stringify(restored));
+          } catch {
+            // ignore
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('[AI Assistant Page] History load error:', err);
+      });
+  }, []);
+
+  // Persist messages to localStorage whenever they change for the active conversation
+  useEffect(() => {
+    if (!conversationId || typeof window === 'undefined') return;
+    if (messages.length > 1 || (messages.length === 1 && messages[0].id !== 'welcome-msg')) {
+      try {
+        localStorage.setItem(`hba_ai_msgs_${conversationId}`, JSON.stringify(messages));
+      } catch {
+        // ignore
+      }
+    }
+  }, [messages, conversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -87,10 +178,30 @@ export function AIDesignAssistantClient({ settings }: { settings?: SiteConfig })
     scrollToBottom();
   }, [messages, isLoading]);
 
+  const handleNewConversation = () => {
+    const newConvId = crypto.randomUUID();
+    setConversationId(newConvId);
+    try {
+      localStorage.setItem(STORAGE_CONV_KEY, newConvId);
+    } catch {
+      // storage restricted
+    }
+    setMessages([
+      {
+        id: `welcome-${Date.now()}`,
+        role: 'assistant',
+        content: getWelcomeText(city),
+        timestamp: 'Just now',
+      },
+    ]);
+    setHasInteracted(false);
+  };
+
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputValue).trim();
     if (!text || isLoading) return;
 
+    setHasInteracted(true);
     const userMsg = createClientChatMessage('user', text);
 
     const newHistory = [...messages, userMsg];
@@ -98,11 +209,46 @@ export function AIDesignAssistantClient({ settings }: { settings?: SiteConfig })
     setInputValue('');
     setIsLoading(true);
 
+    const currentConvId =
+      conversationId ||
+      localStorage.getItem(STORAGE_CONV_KEY) ||
+      crypto.randomUUID();
+
+    if (!conversationId) {
+      setConversationId(currentConvId);
+      try {
+        localStorage.setItem(STORAGE_CONV_KEY, currentConvId);
+      } catch {
+        // storage restricted
+      }
+    }
+
+    // Get visitor identifiers for analytics & conversation linking
+    let visitorId: string | undefined;
+    let sessionId: string | undefined;
+    try {
+      const { getOrCreateVisitorId, getOrCreateSessionId } = await import(
+        '@/lib/analytics/tracker'
+      );
+      const v = getOrCreateVisitorId();
+      visitorId = v.visitorId;
+      const s = getOrCreateSessionId(visitorId);
+      sessionId = s.sessionId;
+    } catch {
+      // safe fallback
+    }
+
+    const clientMessageId = crypto.randomUUID();
+
     try {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          conversationId: currentConvId,
+          visitorId,
+          sessionId,
+          clientMessageId,
           messages: newHistory.map((m) => ({
             role: m.role,
             content: m.content,
@@ -111,6 +257,15 @@ export function AIDesignAssistantClient({ settings }: { settings?: SiteConfig })
       });
 
       const data: ChatApiResponse = await res.json();
+
+      if (data.conversationId && data.conversationId !== currentConvId) {
+        setConversationId(data.conversationId);
+        try {
+          localStorage.setItem(STORAGE_CONV_KEY, data.conversationId);
+        } catch {
+          // ignore
+        }
+      }
 
       const assistantMsg = createClientChatMessage(
         'assistant',
@@ -230,19 +385,14 @@ export function AIDesignAssistantClient({ settings }: { settings?: SiteConfig })
             </div>
 
             <button
-              onClick={() =>
-                setMessages([
-                  {
-                    id: 'welcome-reset',
-                    role: 'assistant',
-                    content: getWelcomeText(city),
-                    timestamp: 'Just now',
-                  },
-                ])
-              }
-              className="text-xs text-[#D4C3B3] hover:text-white px-2.5 py-1 rounded-lg hover:bg-[#381A0E] transition-colors"
+              type="button"
+              onClick={handleNewConversation}
+              className="text-xs text-[#D4C3B3] hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-[#381A0E] transition-colors border border-[#C29B4D]/30 flex items-center gap-1.5"
+              id="new-ai-conversation-btn"
+              title="Start a new conversation"
             >
-              ↻ Clear Chat
+              <span>↻</span>
+              <span>New Conversation</span>
             </button>
           </div>
 

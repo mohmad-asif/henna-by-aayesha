@@ -109,18 +109,14 @@ export default function AdminSocialLinksPage() {
         <h1 className="font-serif-heading text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#261B16] mt-1">
           Social Media Links
         </h1>
-        <p className="text-xs sm:text-sm text-[#703D24] mt-1">
-          Manage your social handles and links. Only enabled platforms with valid URLs will appear on the public website.
-        </p>
       </div>
 
       {statusMsg && (
         <div
-          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
-            statusMsg.type === 'success'
+          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${statusMsg.type === 'success'
               ? 'bg-[#EAFBF0] border-[#D0F4DE] text-[#1EBE5D]'
               : 'bg-[#FDF2F2] border-[#F8D7DA] text-[#9B2C2C]'
-          }`}
+            }`}
         >
           {statusMsg.text}
         </div>
@@ -142,9 +138,8 @@ export default function AdminSocialLinksPage() {
             .map((item) => (
               <div
                 key={item.platform}
-                className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                  item.enabled ? 'border-[#B95945]/40 bg-[#FDFBF7]' : 'border-[#EADFD3] bg-[#F9F7F4] opacity-75'
-                }`}
+                className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${item.enabled ? 'border-[#B95945]/40 bg-[#FDFBF7]' : 'border-[#EADFD3] bg-[#F9F7F4] opacity-75'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <input

@@ -101,7 +101,21 @@ export function AiAssistantWidget({ settings }: { settings?: SiteConfig }) {
     }
     setConversationId(activeId);
 
-    // Fetch existing messages from Supabase
+    // 1. Immediately load cached messages for this conversation if available
+    try {
+      const cachedRaw = localStorage.getItem(`hba_ai_msgs_${activeId}`);
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw);
+        if (Array.isArray(cached) && cached.length > 0) {
+          setMessages(cached);
+          setHasInteracted(cached.length > 1);
+        }
+      }
+    } catch {
+      // ignore JSON parse error
+    }
+
+    // 2. Fetch existing messages from Supabase
     fetch(`/api/ai/chat/history?conversationId=${encodeURIComponent(activeId)}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -131,12 +145,29 @@ export function AiAssistantWidget({ settings }: { settings?: SiteConfig }) {
 
           setMessages(restored);
           setHasInteracted(true);
+          try {
+            localStorage.setItem(`hba_ai_msgs_${activeId}`, JSON.stringify(restored));
+          } catch {
+            // ignore
+          }
         }
       })
       .catch((err) => {
         console.error('[AI Assistant] History load error:', err);
       });
   }, []);
+
+  // Persist messages to localStorage whenever they change for the active conversation
+  useEffect(() => {
+    if (!conversationId || typeof window === 'undefined') return;
+    if (messages.length > 1 || (messages.length === 1 && messages[0].id !== 'welcome-msg')) {
+      try {
+        localStorage.setItem(`hba_ai_msgs_${conversationId}`, JSON.stringify(messages));
+      } catch {
+        // ignore
+      }
+    }
+  }, [messages, conversationId]);
 
   // Auto scroll to latest message
   const scrollToBottom = () => {

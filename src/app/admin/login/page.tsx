@@ -15,7 +15,6 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,35 +25,16 @@ export default function AdminLoginPage() {
 
     try {
       const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      if (mode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-
-        if (error) {
-          setErrorMsg(error.message);
-        } else if (data.user && !data.session) {
-          setSuccessMsg(
-            'Admin account created! Please check your email inbox to confirm your account before logging in.'
-          );
-        } else {
-          router.push(redirectPath);
-          router.refresh();
-        }
+      if (error) {
+        setErrorMsg(error.message);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          setErrorMsg(error.message);
-        } else {
-          router.push(redirectPath);
-          router.refresh();
-        }
+        router.push(redirectPath);
+        router.refresh();
       }
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : 'An error occurred during authentication.');
@@ -174,10 +154,8 @@ export default function AdminLoginPage() {
                   <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                   <span>Authenticating...</span>
                 </>
-              ) : mode === 'signin' ? (
-                'Sign In to Dashboard'
               ) : (
-                'Create Admin Account'
+                'Sign In to Dashboard'
               )}
             </button>
           </form>
